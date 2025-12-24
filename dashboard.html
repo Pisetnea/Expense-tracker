@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Expense Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>💰 SpendWise</h2>
+        <ul class="nav-links">
+            <li class="active">Overview</li>
+            <li>Transactions</li>
+            <li>Budgets</li>
+            <li>Settings</li>
+        </ul>
+    </div>
+
+    <div class="dashboard">
+        <div class="top-bar">
+            <h1>Dashboard Overview</h1>
+            <div>
+                <input type="text" placeholder="Search transactions..." style="width: 250px;">
+                <input type="date">
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span>Total Balance</span>
+                <div class="value">$14,250.00</div>
+            </div>
+            <div class="stat-card">
+                <span>Monthly Income</span>
+                <div class="value">$6,000.00</div>
+            </div>
+            <div class="stat-card expense">
+                <span>Monthly Expense</span>
+                <div class="value">$2,145.20</div>
+            </div>
+            <div class="stat-card">
+                <span>Budget Used (65%)</span>
+                <div class="budget-container">
+                    <div class="budget-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card">
+                <h3>Expense Distribution</h3>
+                <canvas id="expenseDonut"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Revenue vs Spending</h3>
+                <canvas id="mainBarChart"></canvas>
+            </div>
+        </div>
+
+        <div class="transaction-section">
+            <h3>Quick Add Transaction</h3>
+            <div class="form-row">
+                <input type="text" id="desc" placeholder="Transaction Name">
+                <input type="number" id="amt" placeholder="Amount ($)">
+                <select id="cat">
+                    <option>Food & Drinks</option>
+                    <option>Rent</option>
+                    <option>Bills</option>
+                    <option>Shopping</option>
+                </select>
+                <select id="type">
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                </select>
+                <button class="btn-add" onclick="addEntry()">Add</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionList">
+                    <tr>
+                        <td>Oct 26, 2023</td>
+                        <td>Supermarket Purchase</td>
+                        <td>Food & Drinks</td>
+                        <td><span class="badge expense">Expense</span></td>
+                        <td>-$120.50</td>
+                    </tr>
+                    <tr>
+                        <td>Oct 25, 2023</td>
+                        <td>Monthly Salary</td>
+                        <td>Work</td>
+                        <td><span class="badge income">Income</span></td>
+                        <td>+$5,000.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+   
+</body>
+ <script src="assets/js/dashboard.js"></script>
+</html>
