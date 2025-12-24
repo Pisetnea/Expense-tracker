@@ -1,0 +1,114 @@
+/* Brand Colors */
+:root {
+  --primary:    #7c3aed;       /* Vibrant purple */
+  --primary-dark: #5b21b6;     /* Darker hover */
+  --primary-light: #a78bfa;    /* Accent */
+  --success:    #10b981;
+  --danger:     #ef4444;
+  --text-dark:  #1f2937;
+  --text-light: #f3f4f6;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+}
+
+/* Navbar */
+.navbar {
+  background: #111827 !important; /* Dark slate */
+  backdrop-filter: blur(10px);
+}
+
+.navbar-brand span {
+  color: var(--primary-light);
+  font-weight: 800;
+}
+
+/* Circular Logo */
+.logo-circle {
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logo-circle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+}
+
+/* Hero */
+.hero {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  padding-top: 12rem !important;
+  padding-bottom: 8rem !important;
+}
+
+.hero h1, .hero p, .hero .lead {
+  color: var(--text-light) !important;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: white !important;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 25px rgba(124, 58, 237, 0.4);
+}
+
+.btn-outline-light {
+  border-color: white !important;
+  color: white !important;
+  font-weight: 500;
+}
+
+.btn-outline-light:hover {
+  background-color: rgba(255,255,255,0.15);
+  color: white;
+}
+
+/* Features */
+.feature-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.feature-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+}
+
+.icon-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* CTA */
+.cta {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero {
+    padding-top: 10rem !important;
+    padding-bottom: 6rem !important;
+  }
+  h1.display-4 {
+    font-size: 2.8rem !important;
+  }
+}
