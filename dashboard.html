@@ -6,6 +6,8 @@
     <title>Pro Expense Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
     <link rel="stylesheet" href="assets/css/dashboard.css">
 </head>
 <body>
@@ -24,27 +26,37 @@
         <div class="top-bar">
             <h1>Dashboard Overview</h1>
             <div>
-                <input type="text" id="searchInput" placeholder="Search transactions..." style="width: 250px;">
+                <input type="text" id="searchInput" placeholder="Search transactions...">
+                <select id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option>Rent</option>
+                    <option>Food & Drinks</option>
+                    <option>Bills</option>
+                    <option>Shopping</option>
+                    <option>Travel</option>
+                    <option>Other</option>
+                </select>
                 <input type="date" id="dateFilter">
+                <button onclick="applyFilters()">Filter</button>
             </div>
         </div>
 
         <div class="stats-grid">
             <div class="stat-card">
                 <span>Total Balance</span>
-                <div class="value" id="totalBalance">$14,250.00</div>
+                <div class="value" id="totalBalance">$0.00</div>
             </div>
             <div class="stat-card">
                 <span>Monthly Income</span>
-                <div class="value" id="monthlyIncome">$6,000.00</div>
+                <div class="value" id="monthlyIncome">$0.00</div>
             </div>
             <div class="stat-card expense">
                 <span>Monthly Expense</span>
-                <div class="value" id="monthlyExpense">$2,145.20</div>
+                <div class="value" id="monthlyExpense">$0.00</div>
             </div>
             <div class="stat-card">
-                <span>Budget Used</span>
-                <div class="value" id="budgetPercent">65%</div>
+                <span>Budget Progress</span>
+                <div class="value" id="budgetPercent">0%</div>
                 <div class="budget-container">
                     <div class="budget-bar" id="budgetBar"></div>
                 </div>
@@ -53,11 +65,11 @@
 
         <div class="charts-row">
             <div class="chart-card">
-                <h3>Expense Distribution</h3>
+                <h3>Expense Distribution (Current Month)</h3>
                 <canvas id="expenseDonut"></canvas>
             </div>
             <div class="chart-card">
-                <h3>Revenue vs Spending (This Week)</h3>
+                <h3>Income vs Expenses (Last 7 Days)</h3>
                 <canvas id="mainBarChart"></canvas>
             </div>
         </div>
@@ -65,8 +77,8 @@
         <div class="transaction-section">
             <h3>Quick Add Transaction</h3>
             <div class="form-row">
-                <input type="text" id="desc" placeholder="Transaction Name">
-                <input type="number" step="0.01" id="amt" placeholder="Amount ($)">
+                <input type="text" id="desc" placeholder="Description">
+                <input type="number" step="0.01" id="amt" placeholder="Amount">
                 <select id="cat">
                     <option value="Rent">Rent</option>
                     <option value="Food">Food & Drinks</option>
@@ -79,6 +91,7 @@
                     <option value="expense">Expense</option>
                     <option value="income">Income</option>
                 </select>
+                <input type="date" id="transDate">
                 <button class="btn-add" onclick="addEntry()">Add Transaction</button>
             </div>
 
@@ -86,19 +99,17 @@
                 <thead>
                     <tr>
                         <th>Date</th>
-                        <th>Name</th>
+                        <th>Description</th>
                         <th>Category</th>
                         <th>Type</th>
                         <th>Amount</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="transactionList">
-                    <!-- Transactions will be inserted here -->
-                </tbody>
+                <tbody id="transactionList"></tbody>
             </table>
         </div>
     </div>
-<script src="assets/js/dashboard.js"></script>
 </body>
+<script src="assets/js/dashboard.js"></script>
 </html>

@@ -1,44 +1,31 @@
-        Chart.register(ChartDataLabels);
+ Chart.register(ChartDataLabels);
 
-        // Transaction data structure
+        // Data & Config
         let transactions = [];
-        let monthlyBudget = 3300; // Example budget (can be made editable later)
+        let monthlyBudget = 3000; // Editable in future
 
-        // Category mapping for donut chart
-        const categoryMap = {
-            Rent: 0,
-            Food: 1,
-            Bills: 2,
-            Shopping: 3,
-            Travel: 4,
-            Other: 5
-        };
+        const categoryMap = { Rent: 0, Food: 1, Bills: 2, Shopping: 3, Travel: 4, Other: 5 };
+        const categoryLabels = ['Rent', 'Food & Drinks', 'Bills', 'Shopping', 'Travel', 'Other'];
 
-        // Initialize charts
+        // Load from LocalStorage
+        if (localStorage.getItem('expenseTransactions')) {
+            transactions = JSON.parse(localStorage.getItem('expenseTransactions'));
+        }
+
+        // Charts
         const donutCtx = document.getElementById('expenseDonut').getContext('2d');
-        const expenseDonutChart = new Chart(donutCtx, {
+        const expenseDonut = new Chart(donutCtx, {
             type: 'doughnut',
-            data: {
-                labels: ['Rent', 'Food', 'Bills', 'Shopping', 'Travel', 'Other'],
-                datasets: [{
-                    data: [0, 0, 0, 0, 0, 0],
-                    backgroundColor: ['#f45d12', '#00bcbc', '#006d6d', '#ffa500', '#007a7a', '#fdd99b'],
-                    borderWidth: 4,
-                    borderColor: '#ffffff'
-                }]
-            },
+            data: { labels: categoryLabels, datasets: [{ data: [0,0,0,0,0,0], backgroundColor: ['#f45d12','#00bcbc','#006d6d','#ffa500','#007a7a','#fdd99b'], borderWidth: 4, borderColor: '#fff' }] },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                    legend: { position: 'bottom' },
                     datalabels: {
                         color: '#fff',
-                        font: { weight: '800', size: 12 },
-                        formatter: (value, ctx) => {
-                            let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                            let percentage = sum > 0 ? (value * 100 / sum).toFixed(1) + "%" : '';
-                            return value > 0 ? percentage : '';
+                        formatter: (val, ctx) => {
+                            const sum = ctx.dataset.data.reduce((a,b) => a+b, 0);
+                            return sum > 0 ? (val*100/sum).toFixed(1) + '%' : '';
                         }
                     }
                 },
@@ -50,143 +37,202 @@
         const barChart = new Chart(barCtx, {
             type: 'bar',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
                 datasets: [
-                    { label: 'Income', data: [0, 0, 0, 0, 0, 0, 0], backgroundColor: '#00bcbc', borderRadius: 5 },
-                    { label: 'Expenses', data: [0, 0, 0, 0, 0, 0, 0], backgroundColor: '#f45d12', borderRadius: 5 }
+                    { label: 'Income', data: [0,0,0,0,0,0,0], backgroundColor: '#00bcbc' },
+                    { label: 'Expenses', data: [0,0,0,0,0,0,0], backgroundColor: '#f45d12' }
                 ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
-            }
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
         });
 
-        // Load initial dummy data
-        function loadInitialData() {
-            const initial = [
-                { date: '2025-12-20', name: 'Supermarket Purchase', category: 'Food', type: 'expense', amount: 120.50 },
-                { date: '2025-12-19', name: 'Monthly Salary', category: 'Other', type: 'income', amount: 6000.00 },
-                { date: '2025-12-15', name: 'Electricity Bill', category: 'Bills', type: 'expense', amount: 180.00 },
-                { date: '2025-12-10', name: 'Rent Payment', category: 'Rent', type: 'expense', amount: 1200.00 },
-                { date: '2025-12-05', name: 'Online Shopping', category: 'Shopping', type: 'expense', amount: 350.00 }
-            ];
-            initial.forEach(t => addTransaction(t, false));
-        }
-
-        // Add transaction (from form or initial data)
-        function addEntry() {
-            const name = document.getElementById('desc').value.trim();
-            const amountStr = document.getElementById('amt').value;
-            const category = document.getElementById('cat').value;
-            const type = document.getElementById('type').value;
-
-            if (!name || !amountStr) {
-                alert("Please fill in transaction name and amount");
-                return;
-            }
-
-            const amount = parseFloat(amountStr);
-            if (isNaN(amount) || amount <= 0) {
-                alert("Please enter a valid positive amount");
-                return;
-            }
-
-            const transaction = {
-                date: new Date().toISOString().split('T')[0],
-                name,
-                category,
-                type,
-                amount: type === 'expense' ? -amount : amount  // negative for expense in calculations
-            };
-
-            addTransaction(transaction, true);
-
-            // Clear form
-            document.getElementById('desc').value = '';
-            document.getElementById('amt').value = '';
-        }
-
-        function addTransaction(trans, updateUI = true) {
-            transactions.push(trans);
-
-            if (updateUI) {
-                // Add row to table
-                const tbody = document.getElementById('transactionList');
-                const sign = trans.amount > 0 ? '+' : '-';
-                const absAmount = Math.abs(trans.amount).toFixed(2);
+        // Render table
+        function renderTransactions(filtered = transactions) {
+            const tbody = document.getElementById('transactionList');
+            tbody.innerHTML = '';
+            filtered.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach((t, idx) => {
+                const sign = t.amount > 0 ? '+' : '-';
                 const row = document.createElement('tr');
-                row.dataset.id = transactions.length - 1;
                 row.innerHTML = `
-                    <td>${trans.date}</td>
-                    <td>${trans.name}</td>
-                    <td>${trans.category}</td>
-                    <td><span class="badge ${trans.type}">${trans.type.charAt(0).toUpperCase() + trans.type.slice(1)}</span></td>
-                    <td>${sign}$${absAmount}</td>
+                    <td>${moment(t.date).format('MMM DD, YYYY')}</td>
+                    <td>${t.name}</td>
+                    <td>${t.category}</td>
+                    <td><span class="badge ${t.type}">${t.type.charAt(0).toUpperCase() + t.type.slice(1)}</span></td>
+                    <td>${sign}$${Math.abs(t.amount).toFixed(2)}</td>
                     <td class="actions">
-                        <button onclick="deleteTransaction(${transactions.length - 1})" title="Delete">🗑️</button>
+                        <button onclick="editTransaction(${idx})" title="Edit">✏️</button>
+                        <button onclick="deleteTransaction(${idx})" title="Delete">🗑️</button>
                     </td>
                 `;
-                tbody.insertBefore(row, tbody.firstChild);
-
-                updateAllSummaries();
-            }
+                tbody.appendChild(row);
+            });
         }
 
-        function deleteTransaction(index) {
-            if (confirm("Are you sure you want to delete this transaction?")) {
-                transactions.splice(index, 1);
-                document.querySelector(`tr[data-id="${index}"]`).remove();
-                // Re-index remaining rows
-                document.querySelectorAll('#transactionList tr').forEach((tr, i) => {
-                    tr.dataset.id = i;
-                    tr.querySelector('button').setAttribute('onclick', `deleteTransaction(${i})`);
-                });
-                updateAllSummaries();
-            }
-        }
+        // Update summaries and charts based on accurate date logic
+        function updateSummaries() {
+            const now = moment(); // Uses current real date (Dec 24, 2025 today)
+            const monthStart = now.clone().startOf('month');
+            const monthEnd = now.clone().endOf('month');
 
-        // Update all charts and stats
-        function updateAllSummaries() {
-            // Calculate totals
-            const totalIncome = transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
-            const totalExpense = Math.abs(transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0));
-            const balance = totalIncome - totalExpense;
+            const monthlyTrans = transactions.filter(t => moment(t.date).isBetween(monthStart, monthEnd, null, '[]'));
 
-            // Monthly values (simple: all transactions)
-            document.getElementById('monthlyIncome').textContent = '$' + totalIncome.toFixed(2);
-            document.getElementById('monthlyExpense').textContent = '$' + totalExpense.toFixed(2);
+            const income = monthlyTrans.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+            const expense = Math.abs(monthlyTrans.filter(t => t.amount < 0).reduce((s, t) => s + t.amount, 0));
+            const balance = transactions.reduce((s, t) => s + t.amount, 0);
+
+            document.getElementById('monthlyIncome').textContent = '$' + income.toFixed(2);
+            document.getElementById('monthlyExpense').textContent = '$' + expense.toFixed(2);
             document.getElementById('totalBalance').textContent = '$' + balance.toFixed(2);
 
-            // Budget progress
-            const budgetUsed = totalExpense / monthlyBudget * 100;
-            document.getElementById('budgetPercent').textContent = budgetUsed.toFixed(0) + '%';
-            document.getElementById('budgetBar').style.width = Math.min(100, budgetUsed) + '%';
+            const budgetPct = monthlyBudget > 0 ? (expense / monthlyBudget * 100) : 0;
+            document.getElementById('budgetPercent').textContent = budgetPct.toFixed(0) + '%';
+            document.getElementById('budgetBar').style.width = Math.min(100, budgetPct) + '%';
 
-            // Update Donut Chart - only expenses
-            const expenseByCat = [0, 0, 0, 0, 0, 0];
-            transactions.filter(t => t.type === 'expense').forEach(t => {
-                const idx = categoryMap[t.category] || 5;
-                expenseByCat[idx] += Math.abs(t.amount);
+            // Donut: current month expenses by category
+            const catData = [0,0,0,0,0,0];
+            monthlyTrans.filter(t => t.type === 'expense').forEach(t => {
+                const key = t.category.replace(' & Drinks', '');
+                const idx = categoryMap[key] ?? 5;
+                catData[idx] += Math.abs(t.amount);
             });
-            expenseDonutChart.data.datasets[0].data = expenseByCat;
-            expenseDonutChart.update();
+            expenseDonut.data.datasets[0].data = catData;
+            expenseDonut.update();
 
-            // Update Bar Chart - weekly (simple mock based on current data)
-            // For demo, we'll reset and add some random distribution
-            const weeklyIncome = [0, 0, 0, 0, 0, 0, 0];
-            const weeklyExpense = [0, 0, 0, 0, 0, 0, 0];
-            transactions.forEach(t => {
-                const day = new Date(t.date).getDay(); // 0=Sun, 1=Mon...
-                const adjustedDay = (day + 6) % 7; // Make Mon=0
-                if (t.amount > 0) weeklyIncome[adjustedDay] += t.amount;
-                else weeklyExpense[adjustedDay] += Math.abs(t.amount);
-            });
-            barChart.data.datasets[0].data = weeklyIncome;
-            barChart.data.datasets[1].data = weeklyExpense;
+            // Bar: last 7 days (accurate day mapping)
+            const last7Income = [0,0,0,0,0,0,0];
+            const last7Expense = [0,0,0,0,0,0,0];
+            for (let i = 6; i >= 0; i--) {
+                const day = now.clone().subtract(i, 'days');
+                const dayStr = day.format('YYYY-MM-DD');
+                const dayTrans = transactions.filter(t => t.date === dayStr);
+                const dayIncome = dayTrans.filter(t => t.amount > 0).reduce((s,v) => s + v.amount, 0);
+                const dayExpense = Math.abs(dayTrans.filter(t => t.amount < 0).reduce((s,v) => s + v.amount, 0));
+                last7Income[6 - i] = dayIncome;
+                last7Expense[6 - i] = dayExpense;
+            }
+            barChart.data.datasets[0].data = last7Income;
+            barChart.data.datasets[1].data = last7Expense;
             barChart.update();
         }
 
+        function saveToStorage() {
+            localStorage.setItem('expenseTransactions', JSON.stringify(transactions));
+        }
+
+        function addEntry() {
+            const name = document.getElementById('desc').value.trim();
+            const amtStr = document.getElementById('amt').value;
+            const category = document.getElementById('cat').value;
+            const type = document.getElementById('type').value;
+            const date = document.getElementById('transDate').value || moment().format('YYYY-MM-DD');
+
+            if (!name || !amtStr) {
+                Swal.fire('Error', 'Please fill description and amount', 'error');
+                return;
+            }
+            const amount = parseFloat(amtStr);
+            if (isNaN(amount) || amount <= 0) {
+                Swal.fire('Error', 'Enter a valid positive amount', 'error');
+                return;
+            }
+
+            const trans = {
+                date,
+                name,
+                category: category === 'Food' ? 'Food & Drinks' : category,
+                type,
+                amount: type === 'expense' ? -amount : amount
+            };
+
+            transactions.push(trans);
+            saveToStorage();
+            renderTransactions();
+            updateSummaries();
+
+            document.getElementById('desc').value = '';
+            document.getElementById('amt').value = '';
+            document.getElementById('transDate').value = '';
+
+            Swal.fire('Success', 'Transaction added!', 'success');
+        }
+
+        function editTransaction(index) {
+            const t = transactions[index];
+            Swal.fire({
+                title: 'Edit Transaction',
+                html: `
+                    <input id="swal-desc" class="swal2-input" value="${t.name}">
+                    <input id="swal-amt" type="number" step="0.01" class="swal2-input" value="${Math.abs(t.amount)}">
+                    <select id="swal-cat" class="swal2-input">
+                        ${['Rent','Food','Bills','Shopping','Travel','Other'].map(c => `<option value="${c}" ${t.category.replace(' & Drinks','')===c?'selected':''}>${c}</option>`).join('')}
+                    </select>
+                    <select id="swal-type" class="swal2-input">
+                        <option value="expense" ${t.type==='expense'?'selected':''}>Expense</option>
+                        <option value="income" ${t.type==='income'?'selected':''}>Income</option>
+                    </select>
+                    <input id="swal-date" type="date" class="swal2-input" value="${t.date}">
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Save',
+                preConfirm: () => {
+                    const newAmt = parseFloat(document.getElementById('swal-amt').value);
+                    if (isNaN(newAmt) || newAmt <= 0) {
+                        Swal.showValidationMessage('Valid amount required');
+                        return false;
+                    }
+                    return {
+                        name: document.getElementById('swal-desc').value.trim(),
+                        amount: document.getElementById('swal-type').value === 'expense' ? -newAmt : newAmt,
+                        category: document.getElementById('swal-cat').value,
+                        type: document.getElementById('swal-type').value,
+                        date: document.getElementById('swal-date').value
+                    };
+                }
+            }).then(result => {
+                if (result.isConfirmed) {
+                    transactions[index] = {
+                        ...transactions[index],
+                        ...result.value,
+                        category: result.value.category === 'Food' ? 'Food & Drinks' : result.value.category
+                    };
+                    saveToStorage();
+                    renderTransactions();
+                    updateSummaries();
+                    Swal.fire('Updated!', '', 'success');
+                }
+            });
+        }
+
+        function deleteTransaction(index) {
+            Swal.fire({
+                title: 'Delete?',
+                text: 'This cannot be undone',
+                icon: 'warning',
+                showCancelButton: true
+            }).then(result => {
+                if (result.isConfirmed) {
+                    transactions.splice(index, 1);
+                    saveToStorage();
+                    renderTransactions();
+                    updateSummaries();
+                    Swal.fire('Deleted!', '', 'success');
+                }
+            });
+        }
+
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const cat = document.getElementById('categoryFilter').value;
+            const date = document.getElementById('dateFilter').value;
+
+            let filtered = transactions;
+            if (search) filtered = filtered.filter(t => t.name.toLowerCase().includes(search));
+            if (cat) filtered = filtered.filter(t => t.category === (cat === 'Food' ? 'Food & Drinks' : cat));
+            if (date) filtered = filtered.filter(t => t.date === date);
+
+            renderTransactions(filtered);
+        }
+
         // Initial load
-        loadInitialData();
+        renderTransactions();
+        updateSummaries();
