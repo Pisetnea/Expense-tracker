@@ -24,28 +24,29 @@
         <div class="top-bar">
             <h1>Dashboard Overview</h1>
             <div>
-                <input type="text" placeholder="Search transactions..." style="width: 250px;">
-                <input type="date">
+                <input type="text" id="searchInput" placeholder="Search transactions..." style="width: 250px;">
+                <input type="date" id="dateFilter">
             </div>
         </div>
 
         <div class="stats-grid">
             <div class="stat-card">
                 <span>Total Balance</span>
-                <div class="value">$14,250.00</div>
+                <div class="value" id="totalBalance">$14,250.00</div>
             </div>
             <div class="stat-card">
                 <span>Monthly Income</span>
-                <div class="value">$6,000.00</div>
+                <div class="value" id="monthlyIncome">$6,000.00</div>
             </div>
             <div class="stat-card expense">
                 <span>Monthly Expense</span>
-                <div class="value">$2,145.20</div>
+                <div class="value" id="monthlyExpense">$2,145.20</div>
             </div>
             <div class="stat-card">
-                <span>Budget Used (65%)</span>
+                <span>Budget Used</span>
+                <div class="value" id="budgetPercent">65%</div>
                 <div class="budget-container">
-                    <div class="budget-bar"></div>
+                    <div class="budget-bar" id="budgetBar"></div>
                 </div>
             </div>
         </div>
@@ -56,7 +57,7 @@
                 <canvas id="expenseDonut"></canvas>
             </div>
             <div class="chart-card">
-                <h3>Revenue vs Spending</h3>
+                <h3>Revenue vs Spending (This Week)</h3>
                 <canvas id="mainBarChart"></canvas>
             </div>
         </div>
@@ -65,18 +66,20 @@
             <h3>Quick Add Transaction</h3>
             <div class="form-row">
                 <input type="text" id="desc" placeholder="Transaction Name">
-                <input type="number" id="amt" placeholder="Amount ($)">
+                <input type="number" step="0.01" id="amt" placeholder="Amount ($)">
                 <select id="cat">
-                    <option>Food & Drinks</option>
-                    <option>Rent</option>
-                    <option>Bills</option>
-                    <option>Shopping</option>
+                    <option value="Rent">Rent</option>
+                    <option value="Food">Food & Drinks</option>
+                    <option value="Bills">Bills</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Other">Other</option>
                 </select>
                 <select id="type">
                     <option value="expense">Expense</option>
                     <option value="income">Income</option>
                 </select>
-                <button class="btn-add" onclick="addEntry()">Add</button>
+                <button class="btn-add" onclick="addEntry()">Add Transaction</button>
             </div>
 
             <table>
@@ -87,28 +90,15 @@
                         <th>Category</th>
                         <th>Type</th>
                         <th>Amount</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="transactionList">
-                    <tr>
-                        <td>Oct 26, 2023</td>
-                        <td>Supermarket Purchase</td>
-                        <td>Food & Drinks</td>
-                        <td><span class="badge expense">Expense</span></td>
-                        <td>-$120.50</td>
-                    </tr>
-                    <tr>
-                        <td>Oct 25, 2023</td>
-                        <td>Monthly Salary</td>
-                        <td>Work</td>
-                        <td><span class="badge income">Income</span></td>
-                        <td>+$5,000.00</td>
-                    </tr>
+                    <!-- Transactions will be inserted here -->
                 </tbody>
             </table>
         </div>
     </div>
-   
+<script src="assets/js/dashboard.js"></script>
 </body>
- <script src="assets/js/dashboard.js"></script>
 </html>
