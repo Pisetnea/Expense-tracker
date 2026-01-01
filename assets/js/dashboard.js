@@ -1,4 +1,10 @@
- Chart.register(ChartDataLabels);
+        // Display username from signup
+        const currentUsername = localStorage.getItem('currentUsername');
+        if (currentUsername) {
+            document.getElementById('name').textContent = currentUsername;
+        }
+
+        Chart.register(ChartDataLabels);
 
         // Data & Config
         let transactions = [];
