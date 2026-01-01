@@ -14,15 +14,18 @@ function togglePassword(id) {
 }
 
 // sign-in form submission handling
+const signInForm = document.getElementById('signin-form');
 
-document.getElementById('signin-form').addEventListener('submit', function (event) {
-    event.preventDefault(); // Prevent the default form submission
+signInForm.addEventListener('submit', function (event) {
+    event.preventDefault();
 
     const email = document.getElementById('signin-email').value;
     const password = document.getElementById('signin-password').value;
     const errorMessage = document.getElementById('errorMessage');
     const users = JSON.parse(localStorage.getItem("users")) || [];
+    const loggedInUser = localStorage.getItem("currentUser");
     const currentUser = localStorage.getItem("currentUser");
+    errorMessage.textContent = '';
 
     if (!email || !password) {
         errorMessage.textContent = 'Please fill in all fields.';
@@ -43,14 +46,30 @@ document.getElementById('signin-form').addEventListener('submit', function (even
 });
 
 // signup-form submission handling
-document.getElementById('signup-form').addEventListener('submit', function (event) {
-    event.preventDefault(); // Prevent the default form submission
+const signupForm = document.getElementById('signup-form');
+signupForm.addEventListener('submit', function (event) {
+    event.preventDefault(); 
 
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
     const username = document.getElementById('signup-username').value;
     const confirmpassword = document.getElementById('signup-confirm-password').value;
-    const errorMessage = document.getElementById('errorMessage');
+
+    // const errorMessage = document.getElementById('errorMessage');
+    // const successMessage = document.getElementById('successMessage');
+    // errorMessage.textContent = '';
+    // successMessage.textContent = '';
+
+    // let passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    // if (!passwordPattern.test(password)) {
+    //     alert("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.");
+    //     return;
+    // }
+    // let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // if (!emailPattern.test(email)) {
+    //     alert("Please enter a valid email address");
+    //     return;
+    // }
 
     if (!email || !password) {
         alert("Please fill in all fields");
@@ -72,7 +91,6 @@ document.getElementById('signup-form').addEventListener('submit', function (even
     // Save new user
     users.push({ email, password, username }); 
     localStorage.setItem("users", JSON.stringify(users));
-    alert("Signup successful!");
 
     // Auto login after signup
     localStorage.setItem("currentUser", email);
