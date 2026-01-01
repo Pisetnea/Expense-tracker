@@ -230,6 +230,31 @@ document.querySelectorAll('.period-btn').forEach(btn => {
     };
 });
 
+function saveSettings() {
+    const profileName = document.getElementById('profileName').value;
+    const dailyBudget = parseFloat(document.getElementById('dailyBudget').value);
+
+    if (!profileName || isNaN(dailyBudget) || dailyBudget <= 0) {
+        Swal.fire('Error', 'Please fill in all fields correctly', 'error');
+        return;
+    }
+
+    localStorage.setItem('currentUsername', profileName);
+    budgetLimits.daily = dailyBudget;
+    budgetLimits.weekly = dailyBudget * 7;
+    budgetLimits.monthly = dailyBudget * 30;
+    
+    document.getElementById('profile-name').textContent = profileName;
+    updateUI();
+    Swal.fire('Success!', 'Settings saved successfully', 'success');
+}
+
+function loadSettings() {
+    const profileName = localStorage.getItem('currentUsername') || 'User';
+    document.getElementById('profileName').value = profileName;
+    document.getElementById('dailyBudget').value = budgetLimits.daily || 60;
+}
+
 // Form event listeners
 document.getElementById('saveBtn')?.addEventListener('click', saveTransaction);
 document.getElementById('cancelBtn')?.addEventListener('click', clearForm);
@@ -240,6 +265,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', logout);
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
     updateUI();
     renderTable();
     showPage('dashboard');

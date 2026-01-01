@@ -40,6 +40,7 @@ signInForm.addEventListener('submit', function (event) {
     // Successful login
     localStorage.setItem("currentUser", email);
     localStorage.setItem("currentUsername", user.username);
+    localStorage.setItem("isAuthenticated", "true");
     // Redirect to dashboard
     window.location.href = "dashboard.html";
 
@@ -48,31 +49,20 @@ signInForm.addEventListener('submit', function (event) {
 // signup-form submission handling
 const signupForm = document.getElementById('signup-form');
 signupForm.addEventListener('submit', function (event) {
-    event.preventDefault(); 
+    event.preventDefault();
 
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
     const username = document.getElementById('signup-username').value;
     const confirmpassword = document.getElementById('signup-confirm-password').value;
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
 
-    // const errorMessage = document.getElementById('errorMessage');
-    // const successMessage = document.getElementById('successMessage');
-    // errorMessage.textContent = '';
-    // successMessage.textContent = '';
+    errorMessage.textContent = '';
+    successMessage.textContent = '';
 
-    // let passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    // if (!passwordPattern.test(password)) {
-    //     alert("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.");
-    //     return;
-    // }
-    // let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    // if (!emailPattern.test(email)) {
-    //     alert("Please enter a valid email address");
-    //     return;
-    // }
-
-    if (!email || !password) {
-        alert("Please fill in all fields");
+    if (!email || !password || !username) {
+        errorMessage.textContent = "Please fill in all fields";
         return;
     }
 
@@ -80,23 +70,41 @@ signupForm.addEventListener('submit', function (event) {
 
     const userExists = users.some(user => user.email === email);
     if (userExists) {
-        alert("Email already exists");
+        errorMessage.textContent = "Email already exists";
         return;
     }
     if (password !== confirmpassword) {
-        alert("Passwords do not match");
+        errorMessage.textContent = "Passwords do not match";
         return;
     }
 
     // Save new user
-    users.push({ email, password, username }); 
+    users.push({ email, password, username });
     localStorage.setItem("users", JSON.stringify(users));
 
     // Auto login after signup
     localStorage.setItem("currentUser", email);
     localStorage.setItem("currentUsername", username);
+    localStorage.setItem("isAuthenticated", "true");
 
-    // Redirect to dashboard
-    window.location.href = "dashboard.html";
+    // Show success message
+    successMessage.textContent = "Account created successfully! Redirecting...";
+
+    // Redirect to dashboard after short delay
+    setTimeout(() => {
+        window.location.href = "dashboard.html";
+    }, 1500);
 });
+// Toggle password visibility
+document.querySelectorAll('.toggle-password').forEach(toggle => {
+    toggle.addEventListener('click', function () {
+        const inputId = this.getAttribute('data-target');
+        togglePassword(inputId);
+    });
+});
+
+// Switch between sign-in and sign-up
+document.getElementById('show-signup').addEventListener('click', showSignUp);
+document.getElementById('show-signin').addEventListener('click', showSignIn);
+
 

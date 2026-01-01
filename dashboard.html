@@ -19,13 +19,15 @@
 
     <nav class="sidebar">
         <div class="profile">
-            <img src="https://static.vecteezy.com/system/resources/previews/046/409/821/non_2x/avatar-profile-icon-in-flat-style-male-user-profile-illustration-on-isolated-background-man-profile-sign-business-concept-vector.jpg" alt="">
+            <img src="https://static.vecteezy.com/system/resources/previews/046/409/821/non_2x/avatar-profile-icon-in-flat-style-male-user-profile-illustration-on-isolated-background-man-profile-sign-business-concept-vector.jpg"
+                alt="">
             <h3 id="profile-name"></h3>
         </div>
         <h2>SpendWise</h2>
         <ul class="nav-links">
             <li id="nav-dashboard" class="active" onclick="showPage('dashboard')">Dashboard</li>
             <li id="nav-transactions" onclick="showPage('transactions')">Transactions</li>
+            <li id="nav-settings" onclick="showPage('settings')">Settings</li>
         </ul>
     </nav>
 
@@ -129,6 +131,25 @@
                 </thead>
                 <tbody id="transactionList"></tbody>
             </table>
+        </div>
+    </main>
+    <main id="settings-page" class="page-content">
+        <h1>Settings</h1>
+        <div class="card">
+            <h3>Profile Settings</h3>
+            <div class="form-row">
+                <label for="profileName">Name:</label>
+                <input type="text" id="profileName" placeholder="Enter your name">
+            </div>
+            <div class="form-row">
+                <label for="dailyBudget">Daily Budget:</label>
+                <input type="number" id="dailyBudget" placeholder="Enter your daily budget">
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+        </div>
+        <div class="card" style="margin-top: 20px;">
+            <h3>Account</h3>
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
         </div>
     </main>
 </body>
