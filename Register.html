@@ -22,10 +22,13 @@
                 <button class="tab" onclick="showSignUp()">Sign Up</button>
             </div>
 
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+
             <form id="signin-form">
                 <div class="field">
                     <label>Email</label>
-                    <input type="email" placeholder="Enter your email" required>
+                    <input id="signin-email" type="email" placeholder="Enter your email" required>
                 </div>
 
                 <div class="field">
@@ -59,15 +62,18 @@
                 <button class="tab active" onclick="showSignUp()">Sign Up</button>
             </div>
 
-            <form>
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+
+            <form id="signup-form">
                 <div class="field">
                     <label>Full Name</label>
-                    <input type="text" placeholder="Enter your full name" required>
+                    <input id="signup-username" type="text" placeholder="Enter your full name" required>
                 </div>
 
                 <div class="field">
                     <label>Email</label>
-                    <input type="email" placeholder="Enter your email" required>
+                    <input id="signup-email" type="email" placeholder="Enter your email" required>
                 </div>
 
                 <div class="field">
@@ -80,7 +86,10 @@
 
                 <div class="field">
                     <label>Confirm Password</label>
-                    <input type="password" placeholder="Confirm your password" required>
+                    <div class="input-wrapper">
+                        <input id="signup-confirm-password" type="password" placeholder="Confirm your password" required>
+                        <span class="toggle-password" onclick="togglePassword('signup-confirm-password')">👁</span>
+                    </div>
                 </div>
 
                 <button class="btn-primary">Create Account</button>
