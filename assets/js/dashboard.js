@@ -5,240 +5,216 @@
         }
 
         Chart.register(ChartDataLabels);
+        let transactions = JSON.parse(localStorage.getItem('spendwise_final')) || [];
+        let currentPeriod = 'daily';
+        const budgetLimits = { daily: 60, weekly: 400, monthly: 1600 };
 
-        // Data & Config
-        let transactions = [];
-        let monthlyBudget = 3000; // Editable in future
-
-        const categoryMap = { Rent: 0, Food: 1, Bills: 2, Shopping: 3, Travel: 4, Other: 5 };
-        const categoryLabels = ['Rent', 'Food & Drinks', 'Bills', 'Shopping', 'Travel', 'Other'];
-
-        // Load from LocalStorage
-        if (localStorage.getItem('expenseTransactions')) {
-            transactions = JSON.parse(localStorage.getItem('expenseTransactions'));
-        }
-
-        // Charts
-        const donutCtx = document.getElementById('expenseDonut').getContext('2d');
-        const expenseDonut = new Chart(donutCtx, {
+        const donutChart = new Chart(document.getElementById('expenseDonut').getContext('2d'), {
             type: 'doughnut',
-            data: { labels: categoryLabels, datasets: [{ data: [0,0,0,0,0,0], backgroundColor: ['#f45d12','#00bcbc','#006d6d','#ffa500','#007a7a','#fdd99b'], borderWidth: 4, borderColor: '#fff' }] },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    datalabels: {
-                        color: '#fff',
-                        formatter: (val, ctx) => {
-                            const sum = ctx.dataset.data.reduce((a,b) => a+b, 0);
-                            return sum > 0 ? (val*100/sum).toFixed(1) + '%' : '';
-                        }
-                    }
-                },
-                cutout: '65%'
-            }
-        });
-
-        const barCtx = document.getElementById('mainBarChart').getContext('2d');
-        const barChart = new Chart(barCtx, {
-            type: 'bar',
             data: {
-                labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-                datasets: [
-                    { label: 'Income', data: [0,0,0,0,0,0,0], backgroundColor: '#00bcbc' },
-                    { label: 'Expenses', data: [0,0,0,0,0,0,0], backgroundColor: '#f45d12' }
-                ]
+                labels: ['Food & Drinks', 'Rent', 'Bills', 'Shopping', 'Travel', 'Other'],
+                datasets: [{ backgroundColor: ['#3b82f6', '#10b981', '#6366f1', '#ef4444', '#f59e0b', '#94a3b8'], data: [0,0,0,0,0,0] }]
             },
-            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
         });
 
-        // Render table
-        function renderTransactions(filtered = transactions) {
-            const tbody = document.getElementById('transactionList');
-            tbody.innerHTML = '';
-            filtered.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach((t, idx) => {
-                const sign = t.amount > 0 ? '+' : '-';
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${moment(t.date).format('MMM DD, YYYY')}</td>
-                    <td>${t.name}</td>
-                    <td>${t.category}</td>
-                    <td><span class="badge ${t.type}">${t.type.charAt(0).toUpperCase() + t.type.slice(1)}</span></td>
-                    <td>${sign}$${Math.abs(t.amount).toFixed(2)}</td>
-                    <td class="actions">
-                        <button onclick="editTransaction(${idx})" title="Edit">✏️</button>
-                        <button onclick="deleteTransaction(${idx})" title="Delete">🗑️</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+        const trendChart = new Chart(document.getElementById('trendChart').getContext('2d'), {
+            type: 'bar',
+            data: { labels: [], datasets: [
+                { label: 'Income', backgroundColor: '#10b981', data: [], borderRadius: 5 },
+                { label: 'Expense', backgroundColor: '#ef4444', data: [], borderRadius: 5 }
+            ]},
+            options: { responsive: true, scales: { x: { grid: { display: false } } } }
+        });
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-links li').forEach(l => l.classList.remove('active'));
+            document.getElementById(pageId + '-page').classList.add('active');
+            document.getElementById('nav-' + pageId).classList.add('active');
+            updateUI();
         }
 
-        // Update summaries and charts based on accurate date logic
-        function updateSummaries() {
-            const now = moment(); // Uses current real date (Dec 24, 2025 today)
-            const monthStart = now.clone().startOf('month');
-            const monthEnd = now.clone().endOf('month');
+        function updateUI() {
+            const inc = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+            const exp = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+            document.getElementById('income').textContent = `$${inc.toFixed(2)}`;
+            document.getElementById('expenses').textContent = `$${exp.toFixed(2)}`;
+            document.getElementById('balance').textContent = `$${(inc - exp).toFixed(2)}`;
 
-            const monthlyTrans = transactions.filter(t => moment(t.date).isBetween(monthStart, monthEnd, null, '[]'));
+            const todayExp = transactions.filter(t => t.type === 'expense' && moment(t.date).isSame(moment(), 'day')).reduce((s, t) => s + t.amount, 0);
+            const weekExp = transactions.filter(t => t.type === 'expense' && moment(t.date).isSame(moment(), 'week')).reduce((s, t) => s + t.amount, 0);
+            const monthExp = transactions.filter(t => t.type === 'expense' && moment(t.date).isSame(moment(), 'month')).reduce((s, t) => s + t.amount, 0);
 
-            const income = monthlyTrans.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
-            const expense = Math.abs(monthlyTrans.filter(t => t.amount < 0).reduce((s, t) => s + t.amount, 0));
-            const balance = transactions.reduce((s, t) => s + t.amount, 0);
+            let usage = (currentPeriod === 'daily') ? todayExp : (currentPeriod === 'weekly' ? weekExp : monthExp);
+            let limit = budgetLimits[currentPeriod];
+            let pct = Math.min(100, (usage / limit) * 100);
 
-            document.getElementById('monthlyIncome').textContent = '$' + income.toFixed(2);
-            document.getElementById('monthlyExpense').textContent = '$' + expense.toFixed(2);
-            document.getElementById('totalBalance').textContent = '$' + balance.toFixed(2);
+            document.getElementById('budgetLabel').textContent = `${currentPeriod.charAt(0).toUpperCase() + currentPeriod.slice(1)} Progress`;
+            document.getElementById('budgetUsed').textContent = Math.round(pct) + '%';
+            document.getElementById('budgetBar').style.width = pct + '%';
+            document.getElementById('budgetBar').style.background = pct > 90 ? 'var(--danger)' : 'var(--primary)';
 
-            const budgetPct = monthlyBudget > 0 ? (expense / monthlyBudget * 100) : 0;
-            document.getElementById('budgetPercent').textContent = budgetPct.toFixed(0) + '%';
-            document.getElementById('budgetBar').style.width = Math.min(100, budgetPct) + '%';
+            const cats = ['Food & Drinks', 'Rent', 'Bills', 'Shopping', 'Travel', 'Other'];
+            const data = cats.map(c => transactions.filter(t => t.type === 'expense' && t.category === c).reduce((s, t) => s + t.amount, 0));
+            donutChart.data.datasets[0].data = data;
+            donutChart.update();
 
-            // Donut: current month expenses by category
-            const catData = [0,0,0,0,0,0];
-            monthlyTrans.filter(t => t.type === 'expense').forEach(t => {
-                const key = t.category.replace(' & Drinks', '');
-                const idx = categoryMap[key] ?? 5;
-                catData[idx] += Math.abs(t.amount);
-            });
-            expenseDonut.data.datasets[0].data = catData;
-            expenseDonut.update();
+            updateTrend();
+            renderTable();
+        }
 
-            // Bar: last 7 days (accurate day mapping)
-            const last7Income = [0,0,0,0,0,0,0];
-            const last7Expense = [0,0,0,0,0,0,0];
-            for (let i = 6; i >= 0; i--) {
-                const day = now.clone().subtract(i, 'days');
-                const dayStr = day.format('YYYY-MM-DD');
-                const dayTrans = transactions.filter(t => t.date === dayStr);
-                const dayIncome = dayTrans.filter(t => t.amount > 0).reduce((s,v) => s + v.amount, 0);
-                const dayExpense = Math.abs(dayTrans.filter(t => t.amount < 0).reduce((s,v) => s + v.amount, 0));
-                last7Income[6 - i] = dayIncome;
-                last7Expense[6 - i] = dayExpense;
+        function updateTrend() {
+            let labels = [], incD = [], expD = [];
+            if (currentPeriod === 'daily') {
+                labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                const start = moment().startOf('isoWeek');
+                for(let i=0; i<7; i++) {
+                    const d = start.clone().add(i, 'days');
+                    const dayT = transactions.filter(t => moment(t.date).isSame(d, 'day'));
+                    incD.push(dayT.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0));
+                    expD.push(dayT.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0));
+                }
+            } else if (currentPeriod === 'weekly') {
+                labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                const start = moment().startOf('month');
+                for(let i=0; i<4; i++) {
+                    const weekT = transactions.filter(t => moment(t.date).isBetween(start.clone().add(i, 'weeks'), start.clone().add(i+1, 'weeks'), null, '[)'));
+                    incD.push(weekT.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0));
+                    expD.push(weekT.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0));
+                }
+            } else {
+                labels = moment.monthsShort();
+                for(let i=0; i<12; i++) {
+                    const monthT = transactions.filter(t => moment(t.date).month() === i);
+                    incD.push(monthT.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0));
+                    expD.push(monthT.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0));
+                }
             }
-            barChart.data.datasets[0].data = last7Income;
-            barChart.data.datasets[1].data = last7Expense;
-            barChart.update();
+            trendChart.data.labels = labels;
+            trendChart.data.datasets[0].data = incD;
+            trendChart.data.datasets[1].data = expD;
+            trendChart.update();
         }
 
-        function saveToStorage() {
-            localStorage.setItem('expenseTransactions', JSON.stringify(transactions));
-        }
-
-        function addEntry() {
-            const name = document.getElementById('desc').value.trim();
-            const amtStr = document.getElementById('amt').value;
-            const category = document.getElementById('cat').value;
-            const type = document.getElementById('type').value;
+        function saveTransaction() {
+            const desc = document.getElementById('desc').value;
+            const amt = parseFloat(document.getElementById('amt').value);
+            const idx = parseInt(document.getElementById('editIndex').value);
             const date = document.getElementById('transDate').value || moment().format('YYYY-MM-DD');
 
-            if (!name || !amtStr) {
-                Swal.fire('Error', 'Please fill description and amount', 'error');
-                return;
-            }
-            const amount = parseFloat(amtStr);
-            if (isNaN(amount) || amount <= 0) {
-                Swal.fire('Error', 'Enter a valid positive amount', 'error');
-                return;
-            }
+            if(!desc || isNaN(amt)) return Swal.fire('Error', 'Invalid details', 'error');
 
-            const trans = {
-                date,
-                name,
-                category: category === 'Food' ? 'Food & Drinks' : category,
-                type,
-                amount: type === 'expense' ? -amount : amount
-            };
+            const item = { name: desc, amount: amt, category: document.getElementById('cat').value, type: document.getElementById('type').value, date: date };
+            if(idx === -1) transactions.push(item); else transactions[idx] = item;
 
-            transactions.push(trans);
-            saveToStorage();
-            renderTransactions();
-            updateSummaries();
+            localStorage.setItem('spendwise_final', JSON.stringify(transactions));
+            clearForm();
+            updateUI();
+            Swal.fire('Saved!', 'Transaction updated successfully', 'success');
+        }
 
+        function editT(idx) {
+            const t = transactions[idx];
+            document.getElementById('desc').value = t.name;
+            document.getElementById('amt').value = t.amount;
+            document.getElementById('cat').value = t.category;
+            document.getElementById('type').value = t.type;
+            document.getElementById('transDate').value = t.date;
+            document.getElementById('editIndex').value = idx;
+            
+            // UI changes for Edit Mode
+            document.getElementById('formTitle').textContent = "Edit Record";
+            document.getElementById('saveBtn').textContent = "Update";
+            document.getElementById('cancelBtn').style.display = "inline-block"; // Show Cancel button
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function clearForm() {
             document.getElementById('desc').value = '';
             document.getElementById('amt').value = '';
+            document.getElementById('editIndex').value = '-1';
             document.getElementById('transDate').value = '';
-
-            Swal.fire('Success', 'Transaction added!', 'success');
+            document.getElementById('formTitle').textContent = "Add Record";
+            document.getElementById('saveBtn').textContent = "Save";
+            document.getElementById('cancelBtn').style.display = "none"; // Hide Cancel button
         }
 
-        function editTransaction(index) {
-            const t = transactions[index];
+        function deleteT(idx) {
             Swal.fire({
-                title: 'Edit Transaction',
-                html: `
-                    <input id="swal-desc" class="swal2-input" value="${t.name}">
-                    <input id="swal-amt" type="number" step="0.01" class="swal2-input" value="${Math.abs(t.amount)}">
-                    <select id="swal-cat" class="swal2-input">
-                        ${['Rent','Food','Bills','Shopping','Travel','Other'].map(c => `<option value="${c}" ${t.category.replace(' & Drinks','')===c?'selected':''}>${c}</option>`).join('')}
-                    </select>
-                    <select id="swal-type" class="swal2-input">
-                        <option value="expense" ${t.type==='expense'?'selected':''}>Expense</option>
-                        <option value="income" ${t.type==='income'?'selected':''}>Income</option>
-                    </select>
-                    <input id="swal-date" type="date" class="swal2-input" value="${t.date}">
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'Save',
-                preConfirm: () => {
-                    const newAmt = parseFloat(document.getElementById('swal-amt').value);
-                    if (isNaN(newAmt) || newAmt <= 0) {
-                        Swal.showValidationMessage('Valid amount required');
-                        return false;
-                    }
-                    return {
-                        name: document.getElementById('swal-desc').value.trim(),
-                        amount: document.getElementById('swal-type').value === 'expense' ? -newAmt : newAmt,
-                        category: document.getElementById('swal-cat').value,
-                        type: document.getElementById('swal-type').value,
-                        date: document.getElementById('swal-date').value
-                    };
-                }
-            }).then(result => {
-                if (result.isConfirmed) {
-                    transactions[index] = {
-                        ...transactions[index],
-                        ...result.value,
-                        category: result.value.category === 'Food' ? 'Food & Drinks' : result.value.category
-                    };
-                    saveToStorage();
-                    renderTransactions();
-                    updateSummaries();
-                    Swal.fire('Updated!', '', 'success');
-                }
-            });
-        }
-
-        function deleteTransaction(index) {
-            Swal.fire({
-                title: 'Delete?',
-                text: 'This cannot be undone',
+                title: 'Delete this record?',
+                text: "You won't be able to recover this transaction.",
                 icon: 'warning',
-                showCancelButton: true
-            }).then(result => {
-                if (result.isConfirmed) {
-                    transactions.splice(index, 1);
-                    saveToStorage();
-                    renderTransactions();
-                    updateSummaries();
-                    Swal.fire('Deleted!', '', 'success');
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((res) => {
+                if(res.isConfirmed) {
+                    transactions.splice(idx, 1);
+                    localStorage.setItem('spendwise_final', JSON.stringify(transactions));
+                    updateUI();
+                    Swal.fire('Deleted', 'Transaction removed.', 'success');
                 }
             });
         }
 
-        function applyFilters() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const cat = document.getElementById('categoryFilter').value;
-            const date = document.getElementById('dateFilter').value;
+        function renderTable() {
+            const list = document.getElementById('transactionList');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            // Map with original indices to ensure edit/delete works on the right item
+            const mappedData = transactions.map((t, i) => ({ ...t, originalIndex: i }));
 
-            let filtered = transactions;
-            if (search) filtered = filtered.filter(t => t.name.toLowerCase().includes(search));
-            if (cat) filtered = filtered.filter(t => t.category === (cat === 'Food' ? 'Food & Drinks' : cat));
-            if (date) filtered = filtered.filter(t => t.date === date);
+            // Filter by search term
+            const filtered = mappedData.filter(t => 
+                t.name.toLowerCase().includes(searchTerm) || 
+                t.category.toLowerCase().includes(searchTerm)
+            );
 
-            renderTransactions(filtered);
+            list.innerHTML = filtered.slice().reverse().map((t) => {
+                return `<tr>
+                    <td>${t.date}</td>
+                    <td style="font-weight:700">${t.name}</td>
+                    <td><span class="badge ${t.type === 'income' ? 'badge-inc' : 'badge-exp'}">${t.category}</span></td>
+                    <td style="font-weight:bold; color:${t.type === 'income' ? 'var(--success)' : 'var(--danger)'}">
+                        ${t.type === 'income' ? '+' : '-'}$${t.amount.toFixed(2)}
+                    </td>
+                    <td>
+                        <button class="btn-icon edit-btn" onclick="editT(${t.originalIndex})">✏️</button>
+                        <button class="btn-icon del-btn" onclick="deleteT(${t.originalIndex})">🗑️</button>
+                    </td>
+                </tr>`;
+            }).join('');
         }
 
-        // Initial load
-        renderTransactions();
-        updateSummaries();
+        function exportToCSV() {
+            let csv = "Date,Item,Category,Type,Amount\n";
+            transactions.forEach(t => csv += `${t.date},${t.name},${t.category},${t.type},${t.amount}\n`);
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'SpendWise_History.csv'; a.click();
+        }
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("SpendWise Transaction History", 14, 15);
+            doc.autoTable({
+                startY: 20,
+                head: [['Date', 'Item', 'Category', 'Type', 'Amount']],
+                body: transactions.map(t => [t.date, t.name, t.category, t.type, `$${t.amount.toFixed(2)}`])
+            });
+            doc.save("SpendWise_History.pdf");
+        }
+
+        document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentPeriod = btn.dataset.period;
+                updateUI();
+            };
+        });
+
+        updateUI();
