@@ -14,23 +14,23 @@
 </head>
 <body>
 
-    <div class="sidebar">
+
+    <nav class="sidebar">
         <h2>SpendWise</h2>
         <ul class="nav-links">
             <li id="nav-dashboard" class="active" onclick="showPage('dashboard')">Dashboard</li>
             <li id="nav-transactions" onclick="showPage('transactions')">Transactions</li>
-            <li>Budgets</li>
-            <li>Settings</li>
         </ul>
-    </div>
+    </nav>
 
-    <div id="dashboard-page" class="page-content active">
-        <h1>Financial Overview</h1>
-        
-        <div class="period-selector">
-            <button class="period-btn active" data-period="daily">Daily</button>
-            <button class="period-btn" data-period="weekly">Weekly</button>
-            <button class="period-btn" data-period="monthly">Monthly</button>
+    <main id="dashboard-page" class="page-content active">
+        <div class="header-row">
+            <h1>Financial Analytics</h1>
+            <div class="period-selector">
+                <button class="period-btn active" data-period="daily">Daily</button>
+                <button class="period-btn" data-period="weekly">Weekly</button>
+                <button class="period-btn" data-period="monthly">Monthly</button>
+            </div>
         </div>
 
         <div class="stats-grid">
@@ -40,17 +40,17 @@
             </div>
             <div class="stat-card">
                 <div class="label">Income</div>
-                <div class="value" id="income">$0.00</div>
-            </div>
-            <div class="stat-card expense">
-                <div class="label">Expenses</div>
-                <div class="value" id="expenses">$0.00</div>
+                <div class="value" id="income" style="color: var(--success)">$0.00</div>
             </div>
             <div class="stat-card">
-                <div class="label">Budget Progress</div>
+                <div class="label">Expenses</div>
+                <div class="value" id="expenses" style="color: var(--danger)">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="label" id="budgetLabel">Daily Budget Progress</div>
                 <div class="value" id="budgetUsed">0%</div>
-                <div style="height:10px; background:#e9ecef; border-radius:5px; margin-top:8px; overflow:hidden;">
-                    <div id="budgetBar" style="height:100%; width:0%; background:var(--primary); transition:width 0.4s;"></div>
+                <div style="height:6px; background:#f1f5f9; border-radius:10px; overflow:hidden; margin-top:10px;">
+                    <div id="budgetBar" style="width:0%; height:100%; background:var(--primary);"></div>
                 </div>
             </div>
         </div>
@@ -58,79 +58,62 @@
         <div class="charts-container">
             <div class="chart-card">
                 <h3>Expense Breakdown</h3>
-                <canvas id="expenseDonut" height="320"></canvas>
+                <canvas id="expenseDonut"></canvas>
             </div>
             <div class="chart-card">
-                <h3>Trend Analysis</h3>
-                <canvas id="trendChart" height="320"></canvas>
+                <h3 id="trendTitle">Financial Performance</h3>
+                <canvas id="trendChart"></canvas>
             </div>
         </div>
-    </div>
+    </main>
 
-    <div id="transactions-page" class="page-content">
-        <h1>Manage Transactions</h1>
-
-        <div class="filter-section">
-            <h3>Filter Transactions</h3>
-            <div class="filter-row">
-                <input type="text" id="searchDesc" placeholder="Search description...">
-                <select id="filterCategory">
-                    <option value="">All Categories</option>
-                    <option>Rent</option>
-                    <option>Food & Drinks</option>
-                    <option>Bills</option>
-                    <option>Shopping</option>
-                    <option>Travel</option>
-                    <option>Other</option>
-                </select>
-                <input type="date" id="filterDate">
-                <input type="number" id="minAmount" placeholder="Min">
-                <input type="number" id="maxAmount" placeholder="Max">
-                <button class="btn-add" onclick="updateUI()">Apply Filters</button>
-                <button style="background:#6c757d; color:white;" onclick="clearFilters()">Clear</button>
-            </div>
-        </div>
-
-        <div class="export-section">
-            <button class="export-btn csv" onclick="exportToCSV()">Export CSV</button>
-            <button class="export-btn pdf" onclick="exportToPDF()">Export PDF</button>
-        </div>
-
-        <div class="transaction-section">
-            <h3 id="formTitle">Add New Transaction</h3>
+    <main id="transactions-page" class="page-content">
+        <h1>Transactions</h1>
+        
+        <div class="card">
+            <h3 id="formTitle">Add Record</h3>
             <input type="hidden" id="editIndex" value="-1">
             <div class="form-row">
-                <input type="text" id="desc" placeholder="Description">
-                <input type="number" step="0.01" id="amt" placeholder="Amount">
+                <input type="text" id="desc" placeholder="What did you buy?">
+                <input type="number" id="amt" placeholder="Amount">
                 <select id="cat">
-                    <option>Rent</option><option>Food & Drinks</option><option>Bills</option>
+                    <option>Food & Drinks</option><option>Rent</option><option>Bills</option>
                     <option>Shopping</option><option>Travel</option><option>Other</option>
                 </select>
                 <select id="type">
                     <option value="expense">Expense</option>
                     <option value="income">Income</option>
                 </select>
-                <select id="currency">
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="GBP">GBP (£)</option>
-                    <option value="KHR">KHR (៛)</option>
-                </select>
                 <input type="date" id="transDate">
-                <button class="btn-add" id="submitBtn" onclick="saveTransaction()">Add</button>
-                <button id="cancelBtn" style="display:none; background:#6c757d; color:white;" onclick="resetForm()">Cancel</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-primary" id="saveBtn" onclick="saveTransaction()">Save</button>
+                    <button class="btn btn-outline" id="cancelBtn" onclick="clearForm()" style="display: none;">Cancel</button>
+                </div>
             </div>
+        </div>
 
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 15px;">
+                <h3>History</h3>
+                <div style="display:flex; gap: 10px; align-items: center;">
+                    <div class="search-container">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search by name or category..." onkeyup="renderTable()">
+                    </div>
+                    <button class="btn btn-outline" onclick="exportToCSV()">CSV</button>
+                    <button class="btn btn-outline" onclick="exportToPDF()">PDF</button>
+                </div>
+            </div>
             <table>
                 <thead>
                     <tr>
-                        <th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amount</th><th>Currency</th><th>Actions</th>
+                        <th>Date</th><th>Item</th><th>Category</th><th>Amount</th><th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="transactionList"></tbody>
             </table>
         </div>
-    </div>
+    </main>
 </body>
 <script src="assets/js/dashboard.js"></script>
 </html>
