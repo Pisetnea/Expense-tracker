@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /* Brand Colors */
 :root {
   --primary:    #7c3aed;       /* Vibrant purple */
@@ -112,7 +111,6 @@ body {
   h1.display-4 {
     font-size: 2.8rem !important;
   }
-=======
 /* assets/css/main.css */
 
 /* Reset and Base Styles */
@@ -327,5 +325,4 @@ body {
     .features-grid {
         grid-template-columns: 1fr;
     }
->>>>>>> feature/home
 }
