@@ -10,6 +10,23 @@ function logout() {
     window.location.href = 'Register.html';
 }
 
+function confirmLogout() {
+    Swal.fire({
+        title: 'Logout',
+        text: 'Are you sure you want to logout?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, Logout',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            logout();
+        }
+    });
+}
+
 const profileName = document.getElementById('profile-name');
 const currentUsername = localStorage.getItem('currentUsername') || 'User';
 profileName.textContent = currentUsername;
@@ -249,10 +266,192 @@ function saveSettings() {
     Swal.fire('Success!', 'Settings saved successfully', 'success');
 }
 
+function saveProfile() {
+    const profileName = document.getElementById('profileName').value;
+    
+    if (!profileName || profileName.trim() === '') {
+        Swal.fire('Error', 'Please enter a valid name', 'error');
+        return;
+    }
+
+    localStorage.setItem('currentUsername', profileName);
+    document.getElementById('profile-name').textContent = profileName;
+    Swal.fire('Success!', 'Profile updated successfully', 'success');
+}
+
+function saveBudget() {
+    const dailyBudget = parseFloat(document.getElementById('dailyBudget').value);
+    const monthlyBudget = parseFloat(document.getElementById('monthlyBudget').value);
+
+    if ((isNaN(dailyBudget) || dailyBudget < 0) && (isNaN(monthlyBudget) || monthlyBudget < 0)) {
+        Swal.fire('Error', 'Please enter at least one valid budget', 'error');
+        return;
+    }
+
+    if (!isNaN(dailyBudget) && dailyBudget > 0) {
+        budgetLimits.daily = dailyBudget;
+        budgetLimits.weekly = dailyBudget * 7;
+        budgetLimits.monthly = dailyBudget * 30;
+        localStorage.setItem('budgetDaily', dailyBudget.toString());
+    }
+
+    if (!isNaN(monthlyBudget) && monthlyBudget > 0) {
+        budgetLimits.monthly = monthlyBudget;
+        localStorage.setItem('budgetMonthly', monthlyBudget.toString());
+    }
+
+    updateUI();
+    Swal.fire('Success!', 'Budget settings saved', 'success');
+}
+
+// Categories Management
+let defaultCategories = ['Food & Drinks', 'Rent', 'Bills', 'Shopping', 'Travel', 'Other'];
+
+function renderCategories() {
+    const container = document.getElementById('categoriesContainer');
+    const savedCategories = JSON.parse(localStorage.getItem('expenseCategories') || JSON.stringify(defaultCategories));
+    
+    container.innerHTML = savedCategories.map((cat, idx) => `
+        <div style="background: #f3f4f6; padding: 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 500;">${cat}</span>
+            <button class="btn-icon del-btn" onclick="deleteCategory(${idx})" style="background: none; border: none; cursor: pointer; font-size: 14px;">✕</button>
+        </div>
+    `).join('');
+}
+
+function addCategory() {
+    const input = document.getElementById('newCategory');
+    const newCat = input.value.trim();
+
+    if (!newCat) {
+        Swal.fire('Error', 'Please enter a category name', 'error');
+        return;
+    }
+
+    const savedCategories = JSON.parse(localStorage.getItem('expenseCategories') || JSON.stringify(defaultCategories));
+    
+    if (savedCategories.includes(newCat)) {
+        Swal.fire('Error', 'This category already exists', 'error');
+        return;
+    }
+
+    savedCategories.push(newCat);
+    localStorage.setItem('expenseCategories', JSON.stringify(savedCategories));
+    input.value = '';
+    renderCategories();
+    Swal.fire('Success!', 'Category added successfully', 'success');
+}
+
+function deleteCategory(idx) {
+    Swal.fire({
+        title: 'Delete Category?',
+        text: 'This action cannot be undone',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'Delete'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const savedCategories = JSON.parse(localStorage.getItem('expenseCategories') || JSON.stringify(defaultCategories));
+            savedCategories.splice(idx, 1);
+            localStorage.setItem('expenseCategories', JSON.stringify(savedCategories));
+            renderCategories();
+            Swal.fire('Deleted!', 'Category removed', 'success');
+        }
+    });
+}
+
+function saveCurrency() {
+    const currency = document.getElementById('currency').value;
+    localStorage.setItem('preferredCurrency', currency);
+    Swal.fire('Success!', `Currency changed to ${currency}`, 'success');
+}
+
+function saveReportSettings() {
+    const period = document.getElementById('reportPeriod').value;
+    const chartPie = document.getElementById('chartPie').checked;
+    const chartBar = document.getElementById('chartBar').checked;
+    const chartLine = document.getElementById('chartLine').checked;
+    const exportPDF = document.getElementById('exportPDF').checked;
+    const exportCSV = document.getElementById('exportCSV').checked;
+    const exportExcel = document.getElementById('exportExcel').checked;
+
+    localStorage.setItem('reportPeriod', period);
+    localStorage.setItem('chartSettings', JSON.stringify({ pie: chartPie, bar: chartBar, line: chartLine }));
+    localStorage.setItem('exportSettings', JSON.stringify({ pdf: exportPDF, csv: exportCSV, excel: exportExcel }));
+
+    Swal.fire('Success!', 'Report settings saved', 'success');
+}
+
+// Recurring Expenses
+function renderRecurringExpenses() {
+    const container = document.getElementById('recurringContainer');
+    const recurring = JSON.parse(localStorage.getItem('recurringExpenses') || '[]');
+    
+    if (recurring.length === 0) {
+        container.innerHTML = '<p style="color: #999; font-size: 13px;">No recurring expenses yet</p>';
+        return;
+    }
+
+    container.innerHTML = recurring.map((exp, idx) => `
+        <div style="background: #f3f4f6; padding: 12px; border-radius: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div style="font-weight: 500;">${exp.name}</div>
+                <div style="font-size: 12px; color: #666;">${exp.frequency} • $${exp.amount.toFixed(2)}</div>
+            </div>
+            <button class="btn-icon del-btn" onclick="deleteRecurringExpense(${idx})" style="background: none; border: none; cursor: pointer; font-size: 14px;">✕</button>
+        </div>
+    `).join('');
+}
+
+function addRecurringExpense() {
+    const name = document.getElementById('recurringName').value.trim();
+    const amount = parseFloat(document.getElementById('recurringAmount').value);
+    const frequency = document.getElementById('recurringFrequency').value;
+
+    if (!name || isNaN(amount) || amount <= 0) {
+        Swal.fire('Error', 'Please fill in all fields correctly', 'error');
+        return;
+    }
+
+    const recurring = JSON.parse(localStorage.getItem('recurringExpenses') || '[]');
+    recurring.push({ name, amount, frequency });
+    localStorage.setItem('recurringExpenses', JSON.stringify(recurring));
+    
+    document.getElementById('recurringName').value = '';
+    document.getElementById('recurringAmount').value = '';
+    renderRecurringExpenses();
+    Swal.fire('Success!', 'Recurring expense added', 'success');
+}
+
+function deleteRecurringExpense(idx) {
+    const recurring = JSON.parse(localStorage.getItem('recurringExpenses') || '[]');
+    recurring.splice(idx, 1);
+    localStorage.setItem('recurringExpenses', JSON.stringify(recurring));
+    renderRecurringExpenses();
+    Swal.fire('Deleted!', 'Recurring expense removed', 'success');
+}
+
 function loadSettings() {
     const profileName = localStorage.getItem('currentUsername') || 'User';
     document.getElementById('profileName').value = profileName;
     document.getElementById('dailyBudget').value = budgetLimits.daily || 60;
+    document.getElementById('monthlyBudget').value = budgetLimits.monthly || 1600;
+    document.getElementById('currency').value = localStorage.getItem('preferredCurrency') || 'USD';
+    document.getElementById('reportPeriod').value = localStorage.getItem('reportPeriod') || 'monthly';
+
+    const chartSettings = JSON.parse(localStorage.getItem('chartSettings') || '{"pie":true,"bar":true,"line":false}');
+    document.getElementById('chartPie').checked = chartSettings.pie;
+    document.getElementById('chartBar').checked = chartSettings.bar;
+    document.getElementById('chartLine').checked = chartSettings.line;
+
+    const exportSettings = JSON.parse(localStorage.getItem('exportSettings') || '{"pdf":true,"csv":true,"excel":false}');
+    document.getElementById('exportPDF').checked = exportSettings.pdf;
+    document.getElementById('exportCSV').checked = exportSettings.csv;
+    document.getElementById('exportExcel').checked = exportSettings.excel;
+
+    renderCategories();
+    renderRecurringExpenses();
 }
 
 function generateReport() {

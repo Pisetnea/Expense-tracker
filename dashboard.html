@@ -154,21 +154,129 @@
     </main>
     <main id="settings-page" class="page-content">
         <h1>Settings</h1>
+        
+        <!-- Profile Settings -->
         <div class="card">
-            <h3>Profile Settings</h3>
+            <h3>👤 Profile Settings</h3>
             <div class="form-row">
                 <label for="profileName">Name:</label>
                 <input type="text" id="profileName" placeholder="Enter your name">
             </div>
+            <button class="btn btn-primary" onclick="saveProfile()">Save Profile</button>
+        </div>
+
+        <!-- Budget Settings -->
+        <div class="card">
+            <h3>💰 Budget Settings</h3>
             <div class="form-row">
                 <label for="dailyBudget">Daily Budget:</label>
-                <input type="number" id="dailyBudget" placeholder="Enter your daily budget">
+                <input type="number" id="dailyBudget" placeholder="Enter your daily budget" min="0">
             </div>
-            <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+            <div class="form-row">
+                <label for="monthlyBudget">Monthly Budget:</label>
+                <input type="number" id="monthlyBudget" placeholder="Enter your monthly budget" min="0">
+            </div>
+            <button class="btn btn-primary" onclick="saveBudget()">Save Budget</button>
         </div>
-        <div class="card" style="margin-top: 20px;">
-            <h3>Account</h3>
-            <button class="btn btn-danger" onclick="logout()">Logout</button>
+
+        <!-- Categories -->
+        <div class="card">
+            <h3>📂 Spending Categories</h3>
+            <p style="font-size: 13px; color: #666; margin: 0 0 15px 0;">Customize your expense categories for better tracking:</p>
+            <div id="categoriesContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 15px;">
+                <!-- Categories will be populated here -->
+            </div>
+            <div class="form-row">
+                <input type="text" id="newCategory" placeholder="Add new category">
+                <button class="btn btn-primary" onclick="addCategory()">Add Category</button>
+            </div>
+        </div>
+
+        <!-- Currency Settings -->
+        <div class="card">
+            <h3>💵 Currency Settings</h3>
+            <div class="form-row">
+                <label for="currency">Select Currency:</label>
+                <select id="currency">
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="JPY">JPY (¥)</option>
+                    <option value="INR">INR (₹)</option>
+                    <option value="AUD">AUD (A$)</option>
+                    <option value="CAD">CAD (C$)</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="saveCurrency()">Save Currency</button>
+        </div>
+
+        <!-- Report Settings -->
+        <div class="card">
+            <h3>📊 Report Settings</h3>
+            <div class="form-row">
+                <label for="reportPeriod">Default Report Period:</label>
+                <select id="reportPeriod">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+            </div>
+            <div style="margin: 15px 0;">
+                <label style="font-weight: 500; margin-bottom: 10px; display: block;">Chart Visualization:</label>
+                <div style="display: flex; gap: 15px;">
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="checkbox" id="chartPie" checked> Pie Chart
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="checkbox" id="chartBar" checked> Bar Chart
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="checkbox" id="chartLine"> Line Chart
+                    </label>
+                </div>
+            </div>
+            <div style="margin: 15px 0;">
+                <label style="font-weight: 500; margin-bottom: 10px; display: block;">Export Options:</label>
+                <div style="display: flex; gap: 15px;">
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="checkbox" id="exportPDF" checked> PDF
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="checkbox" id="exportCSV" checked> CSV
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="checkbox" id="exportExcel"> Excel
+                    </label>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="saveReportSettings()">Save Report Settings</button>
+        </div>
+
+        <!-- Recurring Expenses -->
+        <div class="card">
+            <h3>🔁 Recurring Expenses</h3>
+            <p style="font-size: 13px; color: #666; margin: 0 0 15px 0;">Mark subscriptions or bills as recurring:</p>
+            <div id="recurringContainer" style="margin-bottom: 15px;">
+                <!-- Recurring expenses will be populated here -->
+            </div>
+            <div class="form-row">
+                <input type="text" id="recurringName" placeholder="Description (e.g., Netflix)">
+                <input type="number" id="recurringAmount" placeholder="Amount" min="0">
+                <select id="recurringFrequency">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+                <button class="btn btn-primary" onclick="addRecurringExpense()">Add</button>
+            </div>
+        </div>
+
+        <!-- Account -->
+        <div class="card" style="margin-bottom: 20px;">
+            <h3>🔐 Account</h3>
+            <button class="btn btn-danger" onclick="confirmLogout()">Logout</button>
         </div>
     </main>
 </body>
