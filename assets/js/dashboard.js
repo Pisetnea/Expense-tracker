@@ -54,10 +54,20 @@ document.getElementById('profilePictureInput')?.addEventListener('change', funct
 // Load profile picture on page load
 function loadProfilePicture() {
     const savedPicture = localStorage.getItem('profilePicture');
-    if (savedPicture) {
-        document.getElementById('profilePicture').src = savedPicture;
-        const settingsPic = document.getElementById('settingsProfilePicture');
-        if (settingsPic) settingsPic.src = savedPicture;
+    if (savedPicture && savedPicture.trim()) {
+        try {
+            const profilePicElement = document.getElementById('profilePicture');
+            const settingsPicElement = document.getElementById('settingsProfilePicture');
+            
+            if (profilePicElement) {
+                profilePicElement.src = savedPicture;
+            }
+            if (settingsPicElement) {
+                settingsPicElement.src = savedPicture;
+            }
+        } catch (error) {
+            console.error('Error loading profile picture:', error);
+        }
     }
 }
 
@@ -683,6 +693,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', logout);
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    loadProfilePicture();
     loadSettings();
     updateUI();
     renderTable();
