@@ -3,33 +3,9 @@ if (!localStorage.getItem('currentUser')) {
     window.location.href = 'Register.html';
 }
 
-// Default categories
-const defaultCategories = ['Food & Drinks', 'Rent', 'Bills', 'Shopping', 'Travel', 'Other'];
-
-// Get categories from localStorage or use defaults
-function getCategories() {
-    return JSON.parse(localStorage.getItem('expenseCategories') || JSON.stringify(defaultCategories));
-}
-
-// Populate category dropdown in transactions page
-function populateCategoryDropdown() {
-    const catSelect = document.getElementById('cat');
-    if (!catSelect) return;
-    
-    const categories = getCategories();
-    catSelect.innerHTML = categories.map(cat => `<option>${cat}</option>`).join('');
-}
-
-function logout() {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('currentUsername');
-    localStorage.removeItem('isAuthenticated');
-    window.location.href = 'Register.html';
-}
-
 function confirmLogout() {
     Swal.fire({
-        title: 'Logout',
+        title: 'Logout Confirmation',
         text: 'Are you sure you want to logout?',
         icon: 'warning',
         showCancelButton: true,
@@ -44,29 +20,46 @@ function confirmLogout() {
     });
 }
 
-// Initialize profile on page load
-function initializeProfile() {
-    const currentUsername = localStorage.getItem('currentUsername') || 'User';
-    const profileNameEl = document.getElementById('profile-name');
-    if (profileNameEl) {
-        profileNameEl.textContent = currentUsername;
-    }
-    
-    const profileImage = localStorage.getItem('profileImage');
-    if (profileImage) {
-        const profileImg = document.querySelector('.profile img');
-        if (profileImg) {
-            profileImg.src = profileImage;
-        }
-    }
+function logout() {
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('currentUsername');
+    localStorage.removeItem('isAuthenticated');
+    window.location.href = 'Register.html';
 }
-
-// Call on initial page load
-initializeProfile();
 
 const profileName = document.getElementById('profile-name');
 const currentUsername = localStorage.getItem('currentUsername') || 'User';
 profileName.textContent = currentUsername;
+
+// Handle profile picture upload
+document.getElementById('profilePictureInput')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const imageData = event.target.result;
+        localStorage.setItem('profilePicture', imageData);
+        
+        // Update both sidebar and settings preview
+        document.getElementById('profilePicture').src = imageData;
+        const settingsPic = document.getElementById('settingsProfilePicture');
+        if (settingsPic) settingsPic.src = imageData;
+        
+        Swal.fire('Success!', 'Profile picture updated', 'success');
+    };
+    reader.readAsDataURL(file);
+});
+
+// Load profile picture on page load
+function loadProfilePicture() {
+    const savedPicture = localStorage.getItem('profilePicture');
+    if (savedPicture) {
+        document.getElementById('profilePicture').src = savedPicture;
+        const settingsPic = document.getElementById('settingsProfilePicture');
+        if (settingsPic) settingsPic.src = savedPicture;
+    }
+}
 
 let transactions = JSON.parse(localStorage.getItem('spendwise_final')) || [];
 let currentPeriod = 'daily';
@@ -97,24 +90,15 @@ function showPage(pageId) {
     document.querySelectorAll('.nav-links li').forEach(l => l.classList.remove('active'));
     document.getElementById(pageId + '-page').classList.add('active');
     document.getElementById('nav-' + pageId).classList.add('active');
-    
-    // Always refresh profile display
-    initializeProfile();
-    
-    // Reload settings form when settings page is opened
-    if (pageId === 'settings') {
-        loadSettings();
-    }
-    
     updateUI();
 }
 
 function updateUI() {
     const inc = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
     const exp = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-    document.getElementById('income').textContent = formatCurrency(inc);
-    document.getElementById('expenses').textContent = formatCurrency(exp);
-    document.getElementById('balance').textContent = formatCurrency(inc - exp);
+    document.getElementById('income').textContent = `$${inc.toFixed(2)}`;
+    document.getElementById('expenses').textContent = `$${exp.toFixed(2)}`;
+    document.getElementById('balance').textContent = `$${(inc - exp).toFixed(2)}`;
 
     const todayExp = transactions.filter(t => t.type === 'expense' && moment(t.date).isSame(moment(), 'day')).reduce((s, t) => s + t.amount, 0);
     const weekExp = transactions.filter(t => t.type === 'expense' && moment(t.date).isSame(moment(), 'week')).reduce((s, t) => s + t.amount, 0);
@@ -147,22 +131,23 @@ function updateTrend() {
         for (let i = 0; i < 7; i++) {
             const d = start.clone().add(i, 'days');
             const dayT = transactions.filter(t => moment(t.date).isSame(d, 'day'));
-    const savedCategories = getCategories();
-    // case-insensitive duplicate check
-    if (savedCategories.some(c => c.toLowerCase() === newCat.toLowerCase())) {
-        Swal.fire('Error', 'This category already exists', 'error');
-        return;
-    }
-
-    savedCategories.push(newCat);
-    localStorage.setItem('expenseCategories', JSON.stringify(savedCategories));
-    input.value = '';
-    renderCategories();
-    populateCategoryDropdown();
-    // select the new category in transactions form if present
-    const catSelect = document.getElementById('cat');
-    if (catSelect) catSelect.value = newCat;
-    Swal.fire('Success!', 'Category added successfully', 'success');
+            incD.push(dayT.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0));
+            expD.push(dayT.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0));
+        }
+    } else if (currentPeriod === 'weekly') {
+        labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+        const start = moment().startOf('month');
+        for (let i = 0; i < 4; i++) {
+            const weekT = transactions.filter(t => moment(t.date).isBetween(start.clone().add(i, 'weeks'), start.clone().add(i + 1, 'weeks'), null, '[)'));
+            incD.push(weekT.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0));
+            expD.push(weekT.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0));
+        }
+    } else {
+        labels = moment.monthsShort();
+        for (let i = 0; i < 12; i++) {
+            const monthT = transactions.filter(t => moment(t.date).month() === i);
+            incD.push(monthT.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0));
+            expD.push(monthT.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0));
         }
     }
     trendChart.data.labels = labels;
@@ -252,7 +237,7 @@ function renderTable() {
                     <td style="font-weight:700">${t.name}</td>
                     <td><span class="badge ${t.type === 'income' ? 'badge-inc' : 'badge-exp'}">${t.category}</span></td>
                     <td style="font-weight:bold; color:${t.type === 'income' ? 'var(--success)' : 'var(--danger)'}">
-                        ${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount)}
+                        ${t.type === 'income' ? '+' : '-'}$${t.amount.toFixed(2)}
                     </td>
                     <td>
                         <button class="btn-icon edit-btn" onclick="editT(${t.originalIndex})">✏️</button>
@@ -278,7 +263,7 @@ function exportToPDF() {
     doc.autoTable({
         startY: 20,
         head: [['Date', 'Item', 'Category', 'Type', 'Amount']],
-        body: transactions.map(t => [t.date, t.name, t.category, t.type, formatCurrency(t.amount)])
+        body: transactions.map(t => [t.date, t.name, t.category, t.type, `$${t.amount.toFixed(2)}`])
     });
     doc.save("SpendWise_History.pdf");
 }
@@ -308,167 +293,101 @@ function saveSettings() {
     
     document.getElementById('profile-name').textContent = profileName;
     updateUI();
-    Swal.fire('Success!', 'Settings saved successfully', 'success');
+    Swal.fire('Success!', 'Profile settings saved successfully', 'success');
 }
 
-function saveProfile() {
-    const profileName = document.getElementById('profileName').value;
-    
-    if (!profileName || profileName.trim() === '') {
-        Swal.fire('Error', 'Please enter a valid name', 'error');
-        return;
-    }
-
-    localStorage.setItem('currentUsername', profileName);
-    document.getElementById('profile-name').textContent = profileName;
-    
-    // Handle profile image if uploaded
-    const profileImageFile = document.getElementById('profileImage').files[0];
-    if (profileImageFile) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const imageData = e.target.result;
-            localStorage.setItem('profileImage', imageData);
-            document.querySelector('.profile img').src = imageData;
-            document.getElementById('profileImagePreview').src = imageData;
-            Swal.fire('Success!', 'Profile updated successfully', 'success');
-        };
-        reader.readAsDataURL(profileImageFile);
-    } else {
-        Swal.fire('Success!', 'Profile updated successfully', 'success');
-    }
-}
-
-function saveBudget() {
-    const dailyBudget = parseFloat(document.getElementById('dailyBudget').value);
+function saveBudgetSettings() {
+    const weeklyBudget = parseFloat(document.getElementById('weeklyBudget').value);
     const monthlyBudget = parseFloat(document.getElementById('monthlyBudget').value);
+    const alertThreshold = parseInt(document.getElementById('budgetAlert').value);
 
-    if ((isNaN(dailyBudget) || dailyBudget < 0) && (isNaN(monthlyBudget) || monthlyBudget < 0)) {
-        Swal.fire('Error', 'Please enter at least one valid budget', 'error');
+    if (isNaN(weeklyBudget) || isNaN(monthlyBudget) || weeklyBudget < 0 || monthlyBudget < 0) {
+        Swal.fire('Error', 'Please enter valid budget amounts', 'error');
         return;
     }
 
-    if (!isNaN(dailyBudget) && dailyBudget > 0) {
-        budgetLimits.daily = dailyBudget;
-        budgetLimits.weekly = dailyBudget * 7;
-        budgetLimits.monthly = dailyBudget * 30;
-        localStorage.setItem('budgetDaily', dailyBudget.toString());
-    }
+    budgetLimits.weekly = weeklyBudget;
+    budgetLimits.monthly = monthlyBudget;
+    localStorage.setItem('budgetLimits', JSON.stringify(budgetLimits));
+    localStorage.setItem('budgetAlertThreshold', alertThreshold);
 
-    if (!isNaN(monthlyBudget) && monthlyBudget > 0) {
-        budgetLimits.monthly = monthlyBudget;
-        localStorage.setItem('budgetMonthly', monthlyBudget.toString());
-    }
-
-    updateUI();
-    Swal.fire('Success!', 'Budget settings saved', 'success');
+    Swal.fire('Success!', 'Budget settings saved successfully', 'success');
 }
 
-// Categories Management
-function renderCategories() {
-    const container = document.getElementById('categoriesContainer');
-    const savedCategories = getCategories();
-    
-    container.innerHTML = savedCategories.map((cat, idx) => `
-        <div style="background: #f3f4f6; padding: 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-weight: 500;">${cat}</span>
-            <button class="btn-icon del-btn" onclick="deleteCategory(${idx})" style="background: none; border: none; cursor: pointer; font-size: 14px;">✕</button>
-        </div>
-    `).join('');
+function saveDisplaySettings() {
+    const currency = document.getElementById('currencySelect').value;
+    const reportingPeriod = document.getElementById('reportingPeriod').value;
+
+    localStorage.setItem('currency', currency);
+    localStorage.setItem('reportingPeriod', reportingPeriod);
+    currentPeriod = reportingPeriod;
+    updateUI();
+
+    Swal.fire('Success!', 'Display settings saved successfully', 'success');
+}
+
+function saveVisualizationSettings() {
+    const chartType = document.getElementById('chartType').value;
+    const enableNotifications = document.getElementById('enableNotifications').checked;
+
+    localStorage.setItem('chartType', chartType);
+    localStorage.setItem('enableNotifications', enableNotifications);
+
+    Swal.fire('Success!', 'Visualization settings saved successfully', 'success');
 }
 
 function addCategory() {
-    const input = document.getElementById('newCategory');
-    const newCat = input.value.trim();
-
-    if (!newCat) {
+    const newCategory = document.getElementById('newCategory').value.trim();
+    
+    if (!newCategory) {
         Swal.fire('Error', 'Please enter a category name', 'error');
         return;
     }
 
-    const savedCategories = getCategories();
-    
-    if (savedCategories.includes(newCat)) {
+    let categories = JSON.parse(localStorage.getItem('spendwise_categories')) || 
+        ['Food & Drinks', 'Rent', 'Bills', 'Shopping', 'Travel', 'Other'];
+
+    if (categories.includes(newCategory)) {
         Swal.fire('Error', 'This category already exists', 'error');
         return;
     }
 
-    savedCategories.push(newCat);
-    localStorage.setItem('expenseCategories', JSON.stringify(savedCategories));
-    input.value = '';
-    renderCategories();
-    populateCategoryDropdown();
+    categories.push(newCategory);
+    localStorage.setItem('spendwise_categories', JSON.stringify(categories));
+    document.getElementById('newCategory').value = '';
+    loadCategories();
+
     Swal.fire('Success!', 'Category added successfully', 'success');
 }
 
-function deleteCategory(idx) {
+function removeCategory(category) {
     Swal.fire({
         title: 'Delete Category?',
-        text: 'This action cannot be undone',
+        text: `Remove "${category}" from categories?`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#ef4444',
-        confirmButtonText: 'Delete'
+        confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
         if (result.isConfirmed) {
-            const savedCategories = getCategories();
-            const removed = savedCategories.splice(idx, 1)[0];
-            localStorage.setItem('expenseCategories', JSON.stringify(savedCategories));
-            renderCategories();
-            populateCategoryDropdown();
-            // if transactions form currently has removed category selected, reset to first option
-            const catSelect = document.getElementById('cat');
-            if (catSelect && catSelect.value === removed) {
-                catSelect.selectedIndex = 0;
-            }
-            Swal.fire('Deleted!', 'Category removed', 'success');
+            let categories = JSON.parse(localStorage.getItem('spendwise_categories')) || [];
+            categories = categories.filter(c => c !== category);
+            localStorage.setItem('spendwise_categories', JSON.stringify(categories));
+            loadCategories();
+            Swal.fire('Deleted!', 'Category removed successfully', 'success');
         }
     });
 }
 
-function saveCurrency() {
-    const currency = document.getElementById('currency').value;
-    localStorage.setItem('preferredCurrency', currency);
-    // Refresh displays that show amounts
-    updateUI();
-    renderTable();
-    renderRecurringExpenses();
-    Swal.fire('Success!', `Currency changed to ${currency}`, 'success');
-}
-
-function saveReportSettings() {
-    const period = document.getElementById('reportPeriod').value;
-    const chartPie = document.getElementById('chartPie').checked;
-    const chartBar = document.getElementById('chartBar').checked;
-    const chartLine = document.getElementById('chartLine').checked;
-    const exportPDF = document.getElementById('exportPDF').checked;
-    const exportCSV = document.getElementById('exportCSV').checked;
-    const exportExcel = document.getElementById('exportExcel').checked;
-
-    localStorage.setItem('reportPeriod', period);
-    localStorage.setItem('chartSettings', JSON.stringify({ pie: chartPie, bar: chartBar, line: chartLine }));
-    localStorage.setItem('exportSettings', JSON.stringify({ pdf: exportPDF, csv: exportCSV, excel: exportExcel }));
-
-    Swal.fire('Success!', 'Report settings saved', 'success');
-}
-
-// Recurring Expenses
-function renderRecurringExpenses() {
-    const container = document.getElementById('recurringContainer');
-    const recurring = JSON.parse(localStorage.getItem('recurringExpenses') || '[]');
+function loadCategories() {
+    const categories = JSON.parse(localStorage.getItem('spendwise_categories')) || 
+        ['Food & Drinks', 'Rent', 'Bills', 'Shopping', 'Travel', 'Other'];
     
-    if (recurring.length === 0) {
-        container.innerHTML = '<p style="color: #999; font-size: 13px;">No recurring expenses yet</p>';
-        return;
-    }
-
-    container.innerHTML = recurring.map((exp, idx) => `
-        <div style="background: #f3f4f6; padding: 12px; border-radius: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <div style="font-weight: 500;">${exp.name}</div>
-                <div style="font-size: 12px; color: #666;">${exp.frequency} • ${formatCurrency(exp.amount)}</div>
-            </div>
-            <button class="btn-icon del-btn" onclick="deleteRecurringExpense(${idx})" style="background: none; border: none; cursor: pointer; font-size: 14px;">✕</button>
+    const list = document.getElementById('categoriesList');
+    list.innerHTML = categories.map(cat => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f3f4f6; border-radius: 6px;">
+            <span>${cat}</span>
+            <button class="btn-icon del-btn" onclick="removeCategory('${cat}')" style="padding: 4px 8px;">✕</button>
         </div>
     `).join('');
 }
@@ -483,52 +402,153 @@ function addRecurringExpense() {
         return;
     }
 
-    const recurring = JSON.parse(localStorage.getItem('recurringExpenses') || '[]');
-    recurring.push({ name, amount, frequency });
-    localStorage.setItem('recurringExpenses', JSON.stringify(recurring));
-    
+    let recurringExpenses = JSON.parse(localStorage.getItem('spendwise_recurring')) || [];
+    recurringExpenses.push({ name, amount, frequency, id: Date.now() });
+    localStorage.setItem('spendwise_recurring', JSON.stringify(recurringExpenses));
+
     document.getElementById('recurringName').value = '';
     document.getElementById('recurringAmount').value = '';
-    renderRecurringExpenses();
-    Swal.fire('Success!', 'Recurring expense added', 'success');
+    loadRecurringExpenses();
+
+    Swal.fire('Success!', 'Recurring expense added successfully', 'success');
 }
 
-function deleteRecurringExpense(idx) {
-    const recurring = JSON.parse(localStorage.getItem('recurringExpenses') || '[]');
-    recurring.splice(idx, 1);
-    localStorage.setItem('recurringExpenses', JSON.stringify(recurring));
-    renderRecurringExpenses();
-    Swal.fire('Deleted!', 'Recurring expense removed', 'success');
+function removeRecurringExpense(id) {
+    Swal.fire({
+        title: 'Delete Recurring Expense?',
+        text: 'This recurring expense will be removed.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let recurringExpenses = JSON.parse(localStorage.getItem('spendwise_recurring')) || [];
+            recurringExpenses = recurringExpenses.filter(r => r.id !== id);
+            localStorage.setItem('spendwise_recurring', JSON.stringify(recurringExpenses));
+            loadRecurringExpenses();
+            Swal.fire('Deleted!', 'Recurring expense removed successfully', 'success');
+        }
+    });
+}
+
+function loadRecurringExpenses() {
+    const recurringExpenses = JSON.parse(localStorage.getItem('spendwise_recurring')) || [];
+    const list = document.getElementById('recurringList');
+
+    if (recurringExpenses.length === 0) {
+        list.innerHTML = '<p style="color: #999; font-size: 14px;">No recurring expenses added yet.</p>';
+        return;
+    }
+
+    list.innerHTML = recurringExpenses.map(expense => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 8px;">
+            <div>
+                <div style="font-weight: 500;">${expense.name}</div>
+                <div style="font-size: 12px; color: #666;">$${expense.amount.toFixed(2)} / ${expense.frequency}</div>
+            </div>
+            <button class="btn-icon del-btn" onclick="removeRecurringExpense(${expense.id})" style="padding: 4px 8px;">🗑️</button>
+        </div>
+    `).join('');
+}
+
+function exportSettingsJSON() {
+    const settings = {
+        profile: {
+            username: localStorage.getItem('currentUsername'),
+            budgetLimits: budgetLimits
+        },
+        categories: JSON.parse(localStorage.getItem('spendwise_categories')),
+        recurring: JSON.parse(localStorage.getItem('spendwise_recurring')),
+        display: {
+            currency: localStorage.getItem('currency'),
+            reportingPeriod: localStorage.getItem('reportingPeriod'),
+            chartType: localStorage.getItem('chartType'),
+            enableNotifications: localStorage.getItem('enableNotifications')
+        },
+        transactions: JSON.parse(localStorage.getItem('spendwise_final'))
+    };
+
+    const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SpendWise_Backup_${moment().format('YYYY-MM-DD_HHmmss')}.json`;
+    a.click();
+    Swal.fire('Success!', 'Settings exported successfully', 'success');
+}
+
+function importSettingsJSON() {
+    document.getElementById('importFile').click();
+}
+
+document.getElementById('importFile')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        try {
+            const settings = JSON.parse(event.target.result);
+            
+            localStorage.setItem('currentUsername', settings.profile.username);
+            localStorage.setItem('spendwise_categories', JSON.stringify(settings.categories));
+            localStorage.setItem('spendwise_recurring', JSON.stringify(settings.recurring));
+            localStorage.setItem('currency', settings.display.currency);
+            localStorage.setItem('reportingPeriod', settings.display.reportingPeriod);
+            localStorage.setItem('chartType', settings.display.chartType);
+            localStorage.setItem('enableNotifications', settings.display.enableNotifications);
+            localStorage.setItem('spendwise_final', JSON.stringify(settings.transactions));
+
+            Swal.fire('Success!', 'Settings imported successfully. Please refresh the page.', 'success');
+        } catch (error) {
+            Swal.fire('Error', 'Invalid JSON file', 'error');
+        }
+    };
+    reader.readAsText(file);
+});
+
+function clearAllData() {
+    Swal.fire({
+        title: 'Clear All Data?',
+        text: 'This will delete all your transactions, settings, and preferences. This action cannot be undone!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, clear everything!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            localStorage.clear();
+            Swal.fire('Cleared!', 'All data has been cleared. Redirecting to login...', 'success');
+            setTimeout(() => {
+                window.location.href = 'Register.html';
+            }, 2000);
+        }
+    });
 }
 
 function loadSettings() {
     const profileName = localStorage.getItem('currentUsername') || 'User';
-    const profileImage = localStorage.getItem('profileImage');
-    
+    const currency = localStorage.getItem('currency') || 'USD';
+    const reportingPeriod = localStorage.getItem('reportingPeriod') || 'daily';
+    const chartType = localStorage.getItem('chartType') || 'donut';
+    const enableNotifications = localStorage.getItem('enableNotifications') !== 'false';
+
     document.getElementById('profileName').value = profileName;
     document.getElementById('dailyBudget').value = budgetLimits.daily || 60;
+    document.getElementById('weeklyBudget').value = budgetLimits.weekly || 400;
     document.getElementById('monthlyBudget').value = budgetLimits.monthly || 1600;
-    document.getElementById('currency').value = localStorage.getItem('preferredCurrency') || 'USD';
-    document.getElementById('reportPeriod').value = localStorage.getItem('reportPeriod') || 'monthly';
+    document.getElementById('currencySelect').value = currency;
+    document.getElementById('reportingPeriod').value = reportingPeriod;
+    document.getElementById('chartType').value = chartType;
+    document.getElementById('enableNotifications').checked = enableNotifications;
+    document.getElementById('loggedInUser').textContent = profileName;
 
-    // Load profile image
-    if (profileImage) {
-        document.getElementById('profileImagePreview').src = profileImage;
-        document.querySelector('.profile img').src = profileImage;
-    }
-
-    const chartSettings = JSON.parse(localStorage.getItem('chartSettings') || '{"pie":true,"bar":true,"line":false}');
-    document.getElementById('chartPie').checked = chartSettings.pie;
-    document.getElementById('chartBar').checked = chartSettings.bar;
-    document.getElementById('chartLine').checked = chartSettings.line;
-
-    const exportSettings = JSON.parse(localStorage.getItem('exportSettings') || '{"pdf":true,"csv":true,"excel":false}');
-    document.getElementById('exportPDF').checked = exportSettings.pdf;
-    document.getElementById('exportCSV').checked = exportSettings.csv;
-    document.getElementById('exportExcel').checked = exportSettings.excel;
-
-    renderCategories();
-    renderRecurringExpenses();
+    loadProfilePicture();
+    loadCategories();
+    loadRecurringExpenses();
 }
 
 function generateReport() {
@@ -579,15 +599,15 @@ function generateReport() {
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
                 <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Total Income</div>
-                    <div style="font-size: 20px; font-weight: bold; color: #10b981;">${formatCurrency(totalIncome)}</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #10b981;">$${totalIncome.toFixed(2)}</div>
                 </div>
                 <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Total Expenses</div>
-                    <div style="font-size: 20px; font-weight: bold; color: #ef4444;">${formatCurrency(totalExpense)}</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #ef4444;">$${totalExpense.toFixed(2)}</div>
                 </div>
                 <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Net Balance</div>
-                    <div style="font-size: 20px; font-weight: bold; color: ${totalBalance >= 0 ? '#10b981' : '#ef4444'};">${formatCurrency(totalBalance)}</div>
+                    <div style="font-size: 20px; font-weight: bold; color: ${totalBalance >= 0 ? '#10b981' : '#ef4444'};">$${totalBalance.toFixed(2)}</div>
                 </div>
             </div>
 
@@ -601,7 +621,7 @@ function generateReport() {
             <div style="margin-bottom: 15px; padding: 12px; background: #fafafa; border-left: 4px solid #3b82f6; border-radius: 4px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <div style="font-weight: bold;">${item.category}</div>
-                    <div style="font-weight: bold; color: #3b82f6;">${formatCurrency(item.amount)} (${percentage}%)</div>
+                    <div style="font-weight: bold; color: #3b82f6;">$${item.amount.toFixed(2)} (${percentage}%)</div>
                 </div>
                 <div style="font-size: 12px; color: #666;">
                     ${getCategoryDescription(item.category, item.amount)}
@@ -625,14 +645,14 @@ function generateReport() {
 
 function getCategoryDescription(category, amount) {
     const descriptions = {
-        'Food & Drinks': `Includes groceries and dining out. Current spending: ${formatCurrency(amount)}.`,
-        'Rent': `Housing and accommodation costs. Current amount: ${formatCurrency(amount)}.`,
-        'Bills': `Utilities including electricity, water, and internet. Current amount: ${formatCurrency(amount)}.`,
-        'Shopping': `Retail and personal purchases. Current spending: ${formatCurrency(amount)}.`,
-        'Travel': `Transportation costs including fuel and public transit. Current amount: ${formatCurrency(amount)}.`,
-        'Other': `Miscellaneous expenses. Current amount: ${formatCurrency(amount)}.`
+        'Food & Drinks': `Includes groceries and dining out. Current spending: $${amount.toFixed(2)}.`,
+        'Rent': `Housing and accommodation costs. Current amount: $${amount.toFixed(2)}.`,
+        'Bills': `Utilities including electricity, water, and internet. Current amount: $${amount.toFixed(2)}.`,
+        'Shopping': `Retail and personal purchases. Current spending: $${amount.toFixed(2)}.`,
+        'Travel': `Transportation costs including fuel and public transit. Current amount: $${amount.toFixed(2)}.`,
+        'Other': `Miscellaneous expenses. Current amount: $${amount.toFixed(2)}.`
     };
-    return descriptions[category] || `${category} expenses: ${formatCurrency(amount)}.`;
+    return descriptions[category] || `${category} expenses: $${amount.toFixed(2)}.`;
 }
 
 function exportReportToPDF() {
@@ -663,7 +683,6 @@ document.getElementById('logoutBtn')?.addEventListener('click', logout);
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    populateCategoryDropdown();
     loadSettings();
     updateUI();
     renderTable();
