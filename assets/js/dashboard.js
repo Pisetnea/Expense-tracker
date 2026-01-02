@@ -44,6 +44,26 @@ function confirmLogout() {
     });
 }
 
+// Initialize profile on page load
+function initializeProfile() {
+    const currentUsername = localStorage.getItem('currentUsername') || 'User';
+    const profileNameEl = document.getElementById('profile-name');
+    if (profileNameEl) {
+        profileNameEl.textContent = currentUsername;
+    }
+    
+    const profileImage = localStorage.getItem('profileImage');
+    if (profileImage) {
+        const profileImg = document.querySelector('.profile img');
+        if (profileImg) {
+            profileImg.src = profileImage;
+        }
+    }
+}
+
+// Call on initial page load
+initializeProfile();
+
 const profileName = document.getElementById('profile-name');
 const currentUsername = localStorage.getItem('currentUsername') || 'User';
 profileName.textContent = currentUsername;
@@ -77,6 +97,9 @@ function showPage(pageId) {
     document.querySelectorAll('.nav-links li').forEach(l => l.classList.remove('active'));
     document.getElementById(pageId + '-page').classList.add('active');
     document.getElementById('nav-' + pageId).classList.add('active');
+    
+    // Always refresh profile display
+    initializeProfile();
     
     // Reload settings form when settings page is opened
     if (pageId === 'settings') {
