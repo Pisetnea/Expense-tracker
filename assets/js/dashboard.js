@@ -147,23 +147,22 @@ function updateTrend() {
         for (let i = 0; i < 7; i++) {
             const d = start.clone().add(i, 'days');
             const dayT = transactions.filter(t => moment(t.date).isSame(d, 'day'));
-            incD.push(dayT.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0));
-            expD.push(dayT.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0));
-        }
-    } else if (currentPeriod === 'weekly') {
-        labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-        const start = moment().startOf('month');
-        for (let i = 0; i < 4; i++) {
-            const weekT = transactions.filter(t => moment(t.date).isBetween(start.clone().add(i, 'weeks'), start.clone().add(i + 1, 'weeks'), null, '[)'));
-            incD.push(weekT.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0));
-            expD.push(weekT.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0));
-        }
-    } else {
-        labels = moment.monthsShort();
-        for (let i = 0; i < 12; i++) {
-            const monthT = transactions.filter(t => moment(t.date).month() === i);
-            incD.push(monthT.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0));
-            expD.push(monthT.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0));
+    const savedCategories = getCategories();
+    // case-insensitive duplicate check
+    if (savedCategories.some(c => c.toLowerCase() === newCat.toLowerCase())) {
+        Swal.fire('Error', 'This category already exists', 'error');
+        return;
+    }
+
+    savedCategories.push(newCat);
+    localStorage.setItem('expenseCategories', JSON.stringify(savedCategories));
+    input.value = '';
+    renderCategories();
+    populateCategoryDropdown();
+    // select the new category in transactions form if present
+    const catSelect = document.getElementById('cat');
+    if (catSelect) catSelect.value = newCat;
+    Swal.fire('Success!', 'Category added successfully', 'success');
         }
     }
     trendChart.data.labels = labels;
@@ -413,10 +412,15 @@ function deleteCategory(idx) {
     }).then((result) => {
         if (result.isConfirmed) {
             const savedCategories = getCategories();
-            savedCategories.splice(idx, 1);
+            const removed = savedCategories.splice(idx, 1)[0];
             localStorage.setItem('expenseCategories', JSON.stringify(savedCategories));
             renderCategories();
             populateCategoryDropdown();
+            // if transactions form currently has removed category selected, reset to first option
+            const catSelect = document.getElementById('cat');
+            if (catSelect && catSelect.value === removed) {
+                catSelect.selectedIndex = 0;
+            }
             Swal.fire('Deleted!', 'Category removed', 'success');
         }
     });
