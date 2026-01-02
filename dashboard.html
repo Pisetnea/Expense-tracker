@@ -87,12 +87,7 @@
                 <input type="text" id="desc" placeholder="What did you buy?">
                 <input type="number" id="amt" placeholder="Amount">
                 <select id="cat">
-                    <option>Food & Drinks</option>
-                    <option>Rent</option>
-                    <option>Bills</option>
-                    <option>Shopping</option>
-                    <option>Travel</option>
-                    <option>Other</option>
+                    <!-- Categories will be populated dynamically -->
                 </select>
                 <select id="type">
                     <option value="expense">Expense</option>
@@ -158,25 +153,24 @@
         <!-- Profile Settings -->
         <div class="card">
             <h3>👤 Profile Settings</h3>
-            <div class="form-row">
-                <label for="profileName">Name:</label>
-                <input type="text" id="profileName" placeholder="Enter your name">
+            <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px;">
+                <div style="flex-shrink: 0;">
+                    <img id="profileImagePreview" src="https://static.vecteezy.com/system/resources/previews/046/409/821/non_2x/avatar-profile-icon-in-flat-style-male-user-profile-illustration-on-isolated-background-man-profile-sign-business-concept-vector.jpg" 
+                         alt="Profile" 
+                         style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #e5e7eb;">
+                </div>
+                <div style="flex: 1;">
+                    <div class="form-row">
+                        <label for="profileName">Name:</label>
+                        <input type="text" id="profileName" placeholder="Enter your name">
+                    </div>
+                    <div class="form-row">
+                        <label for="profileImage">Profile Picture:</label>
+                        <input type="file" id="profileImage" accept="image/*" placeholder="Upload image">
+                    </div>
+                </div>
             </div>
             <button class="btn btn-primary" onclick="saveProfile()">Save Profile</button>
-        </div>
-
-        <!-- Budget Settings -->
-        <div class="card">
-            <h3>💰 Budget Settings</h3>
-            <div class="form-row">
-                <label for="dailyBudget">Daily Budget:</label>
-                <input type="number" id="dailyBudget" placeholder="Enter your daily budget" min="0">
-            </div>
-            <div class="form-row">
-                <label for="monthlyBudget">Monthly Budget:</label>
-                <input type="number" id="monthlyBudget" placeholder="Enter your monthly budget" min="0">
-            </div>
-            <button class="btn btn-primary" onclick="saveBudget()">Save Budget</button>
         </div>
 
         <!-- Categories -->

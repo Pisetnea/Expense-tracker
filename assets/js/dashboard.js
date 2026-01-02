@@ -3,6 +3,23 @@ if (!localStorage.getItem('currentUser')) {
     window.location.href = 'Register.html';
 }
 
+// Default categories
+const defaultCategories = ['Food & Drinks', 'Rent', 'Bills', 'Shopping', 'Travel', 'Other'];
+
+// Get categories from localStorage or use defaults
+function getCategories() {
+    return JSON.parse(localStorage.getItem('expenseCategories') || JSON.stringify(defaultCategories));
+}
+
+// Populate category dropdown in transactions page
+function populateCategoryDropdown() {
+    const catSelect = document.getElementById('cat');
+    if (!catSelect) return;
+    
+    const categories = getCategories();
+    catSelect.innerHTML = categories.map(cat => `<option>${cat}</option>`).join('');
+}
+
 function logout() {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('currentUsername');
@@ -60,6 +77,12 @@ function showPage(pageId) {
     document.querySelectorAll('.nav-links li').forEach(l => l.classList.remove('active'));
     document.getElementById(pageId + '-page').classList.add('active');
     document.getElementById('nav-' + pageId).classList.add('active');
+    
+    // Reload settings form when settings page is opened
+    if (pageId === 'settings') {
+        loadSettings();
+    }
+    
     updateUI();
 }
 
@@ -276,7 +299,22 @@ function saveProfile() {
 
     localStorage.setItem('currentUsername', profileName);
     document.getElementById('profile-name').textContent = profileName;
-    Swal.fire('Success!', 'Profile updated successfully', 'success');
+    
+    // Handle profile image if uploaded
+    const profileImageFile = document.getElementById('profileImage').files[0];
+    if (profileImageFile) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const imageData = e.target.result;
+            localStorage.setItem('profileImage', imageData);
+            document.querySelector('.profile img').src = imageData;
+            document.getElementById('profileImagePreview').src = imageData;
+            Swal.fire('Success!', 'Profile updated successfully', 'success');
+        };
+        reader.readAsDataURL(profileImageFile);
+    } else {
+        Swal.fire('Success!', 'Profile updated successfully', 'success');
+    }
 }
 
 function saveBudget() {
@@ -305,11 +343,9 @@ function saveBudget() {
 }
 
 // Categories Management
-let defaultCategories = ['Food & Drinks', 'Rent', 'Bills', 'Shopping', 'Travel', 'Other'];
-
 function renderCategories() {
     const container = document.getElementById('categoriesContainer');
-    const savedCategories = JSON.parse(localStorage.getItem('expenseCategories') || JSON.stringify(defaultCategories));
+    const savedCategories = getCategories();
     
     container.innerHTML = savedCategories.map((cat, idx) => `
         <div style="background: #f3f4f6; padding: 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
@@ -328,7 +364,7 @@ function addCategory() {
         return;
     }
 
-    const savedCategories = JSON.parse(localStorage.getItem('expenseCategories') || JSON.stringify(defaultCategories));
+    const savedCategories = getCategories();
     
     if (savedCategories.includes(newCat)) {
         Swal.fire('Error', 'This category already exists', 'error');
@@ -339,6 +375,7 @@ function addCategory() {
     localStorage.setItem('expenseCategories', JSON.stringify(savedCategories));
     input.value = '';
     renderCategories();
+    populateCategoryDropdown();
     Swal.fire('Success!', 'Category added successfully', 'success');
 }
 
@@ -352,10 +389,11 @@ function deleteCategory(idx) {
         confirmButtonText: 'Delete'
     }).then((result) => {
         if (result.isConfirmed) {
-            const savedCategories = JSON.parse(localStorage.getItem('expenseCategories') || JSON.stringify(defaultCategories));
+            const savedCategories = getCategories();
             savedCategories.splice(idx, 1);
             localStorage.setItem('expenseCategories', JSON.stringify(savedCategories));
             renderCategories();
+            populateCategoryDropdown();
             Swal.fire('Deleted!', 'Category removed', 'success');
         }
     });
@@ -434,11 +472,19 @@ function deleteRecurringExpense(idx) {
 
 function loadSettings() {
     const profileName = localStorage.getItem('currentUsername') || 'User';
+    const profileImage = localStorage.getItem('profileImage');
+    
     document.getElementById('profileName').value = profileName;
     document.getElementById('dailyBudget').value = budgetLimits.daily || 60;
     document.getElementById('monthlyBudget').value = budgetLimits.monthly || 1600;
     document.getElementById('currency').value = localStorage.getItem('preferredCurrency') || 'USD';
     document.getElementById('reportPeriod').value = localStorage.getItem('reportPeriod') || 'monthly';
+
+    // Load profile image
+    if (profileImage) {
+        document.getElementById('profileImagePreview').src = profileImage;
+        document.querySelector('.profile img').src = profileImage;
+    }
 
     const chartSettings = JSON.parse(localStorage.getItem('chartSettings') || '{"pie":true,"bar":true,"line":false}');
     document.getElementById('chartPie').checked = chartSettings.pie;
@@ -586,6 +632,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', logout);
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    populateCategoryDropdown();
     loadSettings();
     updateUI();
     renderTable();
