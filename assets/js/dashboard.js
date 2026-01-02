@@ -112,9 +112,9 @@ function showPage(pageId) {
 function updateUI() {
     const inc = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
     const exp = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-    document.getElementById('income').textContent = `$${inc.toFixed(2)}`;
-    document.getElementById('expenses').textContent = `$${exp.toFixed(2)}`;
-    document.getElementById('balance').textContent = `$${(inc - exp).toFixed(2)}`;
+    document.getElementById('income').textContent = formatCurrency(inc);
+    document.getElementById('expenses').textContent = formatCurrency(exp);
+    document.getElementById('balance').textContent = formatCurrency(inc - exp);
 
     const todayExp = transactions.filter(t => t.type === 'expense' && moment(t.date).isSame(moment(), 'day')).reduce((s, t) => s + t.amount, 0);
     const weekExp = transactions.filter(t => t.type === 'expense' && moment(t.date).isSame(moment(), 'week')).reduce((s, t) => s + t.amount, 0);
@@ -253,7 +253,7 @@ function renderTable() {
                     <td style="font-weight:700">${t.name}</td>
                     <td><span class="badge ${t.type === 'income' ? 'badge-inc' : 'badge-exp'}">${t.category}</span></td>
                     <td style="font-weight:bold; color:${t.type === 'income' ? 'var(--success)' : 'var(--danger)'}">
-                        ${t.type === 'income' ? '+' : '-'}$${t.amount.toFixed(2)}
+                        ${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount)}
                     </td>
                     <td>
                         <button class="btn-icon edit-btn" onclick="editT(${t.originalIndex})">✏️</button>
@@ -279,7 +279,7 @@ function exportToPDF() {
     doc.autoTable({
         startY: 20,
         head: [['Date', 'Item', 'Category', 'Type', 'Amount']],
-        body: transactions.map(t => [t.date, t.name, t.category, t.type, `$${t.amount.toFixed(2)}`])
+        body: transactions.map(t => [t.date, t.name, t.category, t.type, formatCurrency(t.amount)])
     });
     doc.save("SpendWise_History.pdf");
 }
@@ -425,6 +425,10 @@ function deleteCategory(idx) {
 function saveCurrency() {
     const currency = document.getElementById('currency').value;
     localStorage.setItem('preferredCurrency', currency);
+    // Refresh displays that show amounts
+    updateUI();
+    renderTable();
+    renderRecurringExpenses();
     Swal.fire('Success!', `Currency changed to ${currency}`, 'success');
 }
 
@@ -458,7 +462,7 @@ function renderRecurringExpenses() {
         <div style="background: #f3f4f6; padding: 12px; border-radius: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <div style="font-weight: 500;">${exp.name}</div>
-                <div style="font-size: 12px; color: #666;">${exp.frequency} • $${exp.amount.toFixed(2)}</div>
+                <div style="font-size: 12px; color: #666;">${exp.frequency} • ${formatCurrency(exp.amount)}</div>
             </div>
             <button class="btn-icon del-btn" onclick="deleteRecurringExpense(${idx})" style="background: none; border: none; cursor: pointer; font-size: 14px;">✕</button>
         </div>
@@ -571,15 +575,15 @@ function generateReport() {
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
                 <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Total Income</div>
-                    <div style="font-size: 20px; font-weight: bold; color: #10b981;">$${totalIncome.toFixed(2)}</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #10b981;">${formatCurrency(totalIncome)}</div>
                 </div>
                 <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Total Expenses</div>
-                    <div style="font-size: 20px; font-weight: bold; color: #ef4444;">$${totalExpense.toFixed(2)}</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #ef4444;">${formatCurrency(totalExpense)}</div>
                 </div>
                 <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Net Balance</div>
-                    <div style="font-size: 20px; font-weight: bold; color: ${totalBalance >= 0 ? '#10b981' : '#ef4444'};">$${totalBalance.toFixed(2)}</div>
+                    <div style="font-size: 20px; font-weight: bold; color: ${totalBalance >= 0 ? '#10b981' : '#ef4444'};">${formatCurrency(totalBalance)}</div>
                 </div>
             </div>
 
@@ -593,7 +597,7 @@ function generateReport() {
             <div style="margin-bottom: 15px; padding: 12px; background: #fafafa; border-left: 4px solid #3b82f6; border-radius: 4px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <div style="font-weight: bold;">${item.category}</div>
-                    <div style="font-weight: bold; color: #3b82f6;">$${item.amount.toFixed(2)} (${percentage}%)</div>
+                    <div style="font-weight: bold; color: #3b82f6;">${formatCurrency(item.amount)} (${percentage}%)</div>
                 </div>
                 <div style="font-size: 12px; color: #666;">
                     ${getCategoryDescription(item.category, item.amount)}
@@ -617,14 +621,14 @@ function generateReport() {
 
 function getCategoryDescription(category, amount) {
     const descriptions = {
-        'Food & Drinks': `Includes groceries and dining out. Current spending: $${amount.toFixed(2)}.`,
-        'Rent': `Housing and accommodation costs. Current amount: $${amount.toFixed(2)}.`,
-        'Bills': `Utilities including electricity, water, and internet. Current amount: $${amount.toFixed(2)}.`,
-        'Shopping': `Retail and personal purchases. Current spending: $${amount.toFixed(2)}.`,
-        'Travel': `Transportation costs including fuel and public transit. Current amount: $${amount.toFixed(2)}.`,
-        'Other': `Miscellaneous expenses. Current amount: $${amount.toFixed(2)}.`
+        'Food & Drinks': `Includes groceries and dining out. Current spending: ${formatCurrency(amount)}.`,
+        'Rent': `Housing and accommodation costs. Current amount: ${formatCurrency(amount)}.`,
+        'Bills': `Utilities including electricity, water, and internet. Current amount: ${formatCurrency(amount)}.`,
+        'Shopping': `Retail and personal purchases. Current spending: ${formatCurrency(amount)}.`,
+        'Travel': `Transportation costs including fuel and public transit. Current amount: ${formatCurrency(amount)}.`,
+        'Other': `Miscellaneous expenses. Current amount: ${formatCurrency(amount)}.`
     };
-    return descriptions[category] || `${category} expenses: $${amount.toFixed(2)}.`;
+    return descriptions[category] || `${category} expenses: ${formatCurrency(amount)}.`;
 }
 
 function exportReportToPDF() {
