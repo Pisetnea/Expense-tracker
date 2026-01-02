@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* Brand Colors */
 :root {
   --primary:    #7c3aed;       /* Vibrant purple */
@@ -111,4 +112,220 @@ body {
   h1.display-4 {
     font-size: 2.8rem !important;
   }
+=======
+/* assets/css/main.css */
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #ffffff;
+    color: #333;
+    line-height: 1.6;
+    overflow-x: hidden;
+    position: relative;
+}
+
+#particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: #ffffff;
+    opacity: 1;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Hero Section */
+.hero {
+    text-align: center;
+    padding: 6rem 0 4rem;
+}
+
+.logo-circle-wrapper {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 2rem;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+.logo-circle {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    color: #1f2937;
+}
+
+.subheadline {
+    font-size: 1.25rem;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    color: #4b5563;
+}
+
+.cta-button {
+    display: inline-block;
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    color: #fff;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+}
+
+.cta-button:hover {
+    transform: scale(1.05);
+}
+
+.signup-prompt {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.signup-prompt a {
+    color: #8b5cf6;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.signup-prompt a:hover {
+    text-decoration: underline;
+}
+
+/* Mockups */
+.mockups {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 4rem 0;
+    flex-wrap: wrap;
+}
+
+.phone-frame {
+    width: 250px;
+    height: 500px;
+    background: #fff;
+    border-radius: 40px;
+    padding: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.screen {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    border-radius: 20px;
+}
+
+/* Features Section */
+.features-section {
+    margin: 4rem 0;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.feature-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #1f2937;
+}
+
+.feature-text {
+    font-size: 1rem;
+    color: #4b5563;
+}
+
+/* Trust Badges */
+.trust-badges {
+    text-align: center;
+    padding: 2rem 0;
+    background: #f3f4f6;
+    border-radius: 20px;
+    font-size: 1rem;
+    color: #4b5563;
+}
+
+.trust-badges strong {
+    color: #8b5cf6;
+    font-weight: 600;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+    .headline {
+        font-size: 2.5rem;
+    }
+
+    .subheadline {
+        font-size: 1rem;
+    }
+
+    .mockups {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .phone-frame {
+        width: 200px;
+        height: 400px;
+        padding: 15px;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+>>>>>>> feature/home
 }
