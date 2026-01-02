@@ -255,6 +255,128 @@ function loadSettings() {
     document.getElementById('dailyBudget').value = budgetLimits.daily || 60;
 }
 
+function generateReport() {
+    const startDate = document.getElementById('reportStartDate').value;
+    const endDate = document.getElementById('reportEndDate').value;
+
+    if (!startDate || !endDate) {
+        Swal.fire('Error', 'Please select both start and end dates', 'error');
+        return;
+    }
+
+    const start = moment(startDate);
+    const end = moment(endDate);
+
+    if (start.isAfter(end)) {
+        Swal.fire('Error', 'Start date must be before end date', 'error');
+        return;
+    }
+
+    // Filter transactions within date range
+    const reportTrans = transactions.filter(t => 
+        moment(t.date).isBetween(start, end, null, '[]')
+    );
+
+    if (reportTrans.length === 0) {
+        Swal.fire('No Data', 'No transactions found in the selected date range', 'info');
+        return;
+    }
+
+    // Calculate category breakdown
+    const cats = ['Food & Drinks', 'Rent', 'Bills', 'Shopping', 'Travel', 'Other'];
+    const catData = cats.map(c => {
+        const total = reportTrans
+            .filter(t => t.type === 'expense' && t.category === c)
+            .reduce((s, t) => s + t.amount, 0);
+        return { category: c, amount: total };
+    }).filter(d => d.amount > 0);
+
+    const totalExpense = catData.reduce((s, d) => s + d.amount, 0);
+    const totalIncome = reportTrans
+        .filter(t => t.type === 'income')
+        .reduce((s, t) => s + t.amount, 0);
+    const totalBalance = totalIncome - totalExpense;
+
+    // Generate report HTML
+    let reportHTML = `
+        <div style="font-size: 14px; line-height: 1.6;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
+                <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Total Income</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #10b981;">$${totalIncome.toFixed(2)}</div>
+                </div>
+                <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Total Expenses</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #ef4444;">$${totalExpense.toFixed(2)}</div>
+                </div>
+                <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Net Balance</div>
+                    <div style="font-size: 20px; font-weight: bold; color: ${totalBalance >= 0 ? '#10b981' : '#ef4444'};">$${totalBalance.toFixed(2)}</div>
+                </div>
+            </div>
+
+            <h4 style="margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">Detailed Breakdown</h4>
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">This section explains the numbers behind the summary:</p>
+    `;
+
+    catData.forEach(item => {
+        const percentage = ((item.amount / totalExpense) * 100).toFixed(0);
+        reportHTML += `
+            <div style="margin-bottom: 15px; padding: 12px; background: #fafafa; border-left: 4px solid #3b82f6; border-radius: 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <div style="font-weight: bold;">${item.category}</div>
+                    <div style="font-weight: bold; color: #3b82f6;">$${item.amount.toFixed(2)} (${percentage}%)</div>
+                </div>
+                <div style="font-size: 12px; color: #666;">
+                    ${getCategoryDescription(item.category, item.amount)}
+                </div>
+            </div>
+        `;
+    });
+
+    reportHTML += `
+            <div style="margin-top: 20px; padding: 15px; background: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                <strong>Report Period:</strong> ${startDate} to ${endDate}<br>
+                <strong>Total Transactions:</strong> ${reportTrans.length}
+            </div>
+        </div>
+    `;
+
+    document.getElementById('reportContent').innerHTML = reportHTML;
+    document.getElementById('reportResult').style.display = 'block';
+    Swal.fire('Success', 'Report generated successfully', 'success');
+}
+
+function getCategoryDescription(category, amount) {
+    const descriptions = {
+        'Food & Drinks': `Includes groceries and dining out. Current spending: $${amount.toFixed(2)}.`,
+        'Rent': `Housing and accommodation costs. Current amount: $${amount.toFixed(2)}.`,
+        'Bills': `Utilities including electricity, water, and internet. Current amount: $${amount.toFixed(2)}.`,
+        'Shopping': `Retail and personal purchases. Current spending: $${amount.toFixed(2)}.`,
+        'Travel': `Transportation costs including fuel and public transit. Current amount: $${amount.toFixed(2)}.`,
+        'Other': `Miscellaneous expenses. Current amount: $${amount.toFixed(2)}.`
+    };
+    return descriptions[category] || `${category} expenses: $${amount.toFixed(2)}.`;
+}
+
+function exportReportToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const startDate = document.getElementById('reportStartDate').value;
+    const endDate = document.getElementById('reportEndDate').value;
+
+    doc.text("SpendWise - Financial Report", 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Report Period: ${startDate} to ${endDate}`, 14, 25);
+
+    const reportContent = document.getElementById('reportContent').innerText;
+    doc.setFontSize(9);
+    const lines = doc.splitTextToSize(reportContent, 180);
+    doc.text(lines, 14, 35);
+
+    doc.save(`SpendWise_Report_${startDate}_to_${endDate}.pdf`);
+}
+
 // Form event listeners
 document.getElementById('saveBtn')?.addEventListener('click', saveTransaction);
 document.getElementById('cancelBtn')?.addEventListener('click', clearForm);

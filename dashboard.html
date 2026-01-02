@@ -27,6 +27,7 @@
         <ul class="nav-links">
             <li id="nav-dashboard" class="active" onclick="showPage('dashboard')">Dashboard</li>
             <li id="nav-transactions" onclick="showPage('transactions')">Transactions</li>
+            <li id="nav-reports" onclick="showPage('reports')">Reports</li>
             <li id="nav-settings" onclick="showPage('settings')">Settings</li>
         </ul>
     </nav>
@@ -131,6 +132,24 @@
                 </thead>
                 <tbody id="transactionList"></tbody>
             </table>
+        </div>
+    </main>
+    <main id="reports-page" class="page-content">
+        <h1>Reports</h1>
+        <div class="card">
+            <h3>Generate Financial Report</h3>
+            <div class="form-row">
+                <label for="reportStartDate">Start Date:</label>
+                <input type="date" id="reportStartDate">
+                <label for="reportEndDate">End Date:</label>
+                <input type="date" id="reportEndDate">
+                <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+            </div>
+        </div>
+        <div class="card" id="reportResult" style="display:none; margin-top:20px;">
+            <h3>Report Summary</h3>
+            <div id="reportContent"></div>
+            <button class="btn btn-outline" onclick="exportReportToPDF()">Export to PDF</button>
         </div>
     </main>
     <main id="settings-page" class="page-content">

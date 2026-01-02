@@ -295,3 +295,7 @@ td {
 .form-row{
     margin-bottom: 16px;
 }
+
+.btn.btn-outline{
+    margin-top: 20px;
+}
