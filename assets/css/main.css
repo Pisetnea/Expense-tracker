@@ -1,114 +1,215 @@
-/* Brand Colors */
-:root {
-  --primary:    #7c3aed;       /* Vibrant purple */
-  --primary-dark: #5b21b6;     /* Darker hover */
-  --primary-light: #a78bfa;    /* Accent */
-  --success:    #10b981;
-  --danger:     #ef4444;
-  --text-dark:  #1f2937;
-  --text-light: #f3f4f6;
+/* assets/css/main.css */
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: #ffffff;
+    color: #333;
+    line-height: 1.6;
+    overflow-x: hidden;
+    position: relative;
 }
 
-/* Navbar */
-.navbar {
-  background: #111827 !important; /* Dark slate */
-  backdrop-filter: blur(10px);
+#particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: #ffffff;
+    opacity: 1;
 }
 
-.navbar-brand span {
-  color: var(--primary-light);
-  font-weight: 800;
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
 }
 
-/* Circular Logo */
-.logo-circle {
-  border: 3px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-  background: rgba(255, 255, 255, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.logo-circle:hover {
-  transform: scale(1.08);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
-}
-
-/* Hero */
+/* Hero Section */
 .hero {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  padding-top: 12rem !important;
-  padding-bottom: 8rem !important;
+    text-align: center;
+    padding: 6rem 0 4rem;
 }
 
-.hero h1, .hero p, .hero .lead {
-  color: var(--text-light) !important;
+.logo-circle-wrapper {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 2rem;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
 }
 
-/* Buttons */
-.btn-primary {
-  background-color: var(--primary) !important;
-  border-color: var(--primary) !important;
-  color: white !important;
-  font-weight: 600;
-  transition: all 0.3s ease;
+.logo-circle {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
-.btn-primary:hover {
-  background-color: var(--primary-dark) !important;
-  border-color: var(--primary-dark) !important;
-  transform: translateY(-3px);
-  box-shadow: 0 12px 25px rgba(124, 58, 237, 0.4);
+.headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    color: #1f2937;
 }
 
-.btn-outline-light {
-  border-color: white !important;
-  color: white !important;
-  font-weight: 500;
+.subheadline {
+    font-size: 1.25rem;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    color: #4b5563;
 }
 
-.btn-outline-light:hover {
-  background-color: rgba(255,255,255,0.15);
-  color: white;
+.cta-button {
+    display: inline-block;
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    color: #fff;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
 }
 
-/* Features */
+.cta-button:hover {
+    transform: scale(1.05);
+}
+
+.signup-prompt {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.signup-prompt a {
+    color: #8b5cf6;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.signup-prompt a:hover {
+    text-decoration: underline;
+}
+
+/* Mockups */
+.mockups {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 4rem 0;
+    flex-wrap: wrap;
+}
+
+.phone-frame {
+    width: 250px;
+    height: 500px;
+    background: #fff;
+    border-radius: 40px;
+    padding: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.screen {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    border-radius: 20px;
+}
+
+/* Features Section */
+.features-section {
+    margin: 4rem 0;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
 .feature-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border-radius: 16px;
-  overflow: hidden;
+    background: #fff;
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
 }
 
 .feature-card:hover {
-  transform: translateY(-12px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+    transform: translateY(-10px);
 }
 
-.icon-circle {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
 }
 
-/* CTA */
-.cta {
-  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%) !important;
+.feature-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #1f2937;
 }
 
-/* Responsive */
+.feature-text {
+    font-size: 1rem;
+    color: #4b5563;
+}
+
+/* Trust Badges */
+.trust-badges {
+    text-align: center;
+    padding: 2rem 0;
+    background: #f3f4f6;
+    border-radius: 20px;
+    font-size: 1rem;
+    color: #4b5563;
+}
+
+.trust-badges strong {
+    color: #8b5cf6;
+    font-weight: 600;
+}
+
+/* Media Queries for Responsiveness */
 @media (max-width: 768px) {
-  .hero {
-    padding-top: 10rem !important;
-    padding-bottom: 6rem !important;
-  }
-  h1.display-4 {
-    font-size: 2.8rem !important;
-  }
+    .headline {
+        font-size: 2.5rem;
+    }
+
+    .subheadline {
+        font-size: 1rem;
+    }
+
+    .mockups {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .phone-frame {
+        width: 200px;
+        height: 400px;
+        padding: 15px;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
 }
