@@ -1,6 +1,5 @@
 // assets/js/main.js
 
-// Particle Animation for Canvas
 document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('particles');
     const ctx = canvas.getContext('2d');
@@ -61,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initParticles();
     animateParticles();
 
-    // Resize Canvas on Window Resize
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
