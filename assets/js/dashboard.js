@@ -73,7 +73,7 @@ function loadProfilePicture() {
 
 let transactions = JSON.parse(localStorage.getItem('spendwise_final')) || [];
 let currentPeriod = 'daily';
-const budgetLimits = { daily: 60, weekly: 400, monthly: 1600 };
+let budgetLimits = JSON.parse(localStorage.getItem('budgetLimits')) || { daily: 60, weekly: 400, monthly: 1600 };
 
 const donutChart = new Chart(document.getElementById('expenseDonut').getContext('2d'), {
     type: 'doughnut',
@@ -101,6 +101,13 @@ function showPage(pageId) {
     document.getElementById(pageId + '-page').classList.add('active');
     document.getElementById('nav-' + pageId).classList.add('active');
     updateUI();
+    // Close sidebar on mobile after selection
+    const sidebar = document.querySelector('.sidebar');
+    const toggleBtn = document.getElementById('menu-toggle');
+    if (sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        toggleBtn.textContent = '☰';
+    }
 }
 
 function updateUI() {
@@ -289,38 +296,36 @@ document.querySelectorAll('.period-btn').forEach(btn => {
 
 function saveSettings() {
     const profileName = document.getElementById('profileName').value;
-    const dailyBudget = parseFloat(document.getElementById('dailyBudget').value);
 
-    if (!profileName || isNaN(dailyBudget) || dailyBudget <= 0) {
-        Swal.fire('Error', 'Please fill in all fields correctly', 'error');
+    if (!profileName) {
+        Swal.fire('Error', 'Please enter a name', 'error');
         return;
     }
 
     localStorage.setItem('currentUsername', profileName);
-    budgetLimits.daily = dailyBudget;
-    budgetLimits.weekly = dailyBudget * 7;
-    budgetLimits.monthly = dailyBudget * 30;
-    
     document.getElementById('profile-name').textContent = profileName;
-    updateUI();
+    document.getElementById('loggedInUser').textContent = profileName;
     Swal.fire('Success!', 'Profile settings saved successfully', 'success');
 }
 
 function saveBudgetSettings() {
+    const dailyBudget = parseFloat(document.getElementById('dailyBudget').value);
     const weeklyBudget = parseFloat(document.getElementById('weeklyBudget').value);
     const monthlyBudget = parseFloat(document.getElementById('monthlyBudget').value);
     const alertThreshold = parseInt(document.getElementById('budgetAlert').value);
 
-    if (isNaN(weeklyBudget) || isNaN(monthlyBudget) || weeklyBudget < 0 || monthlyBudget < 0) {
+    if (isNaN(dailyBudget) || isNaN(weeklyBudget) || isNaN(monthlyBudget) || dailyBudget < 0 || weeklyBudget < 0 || monthlyBudget < 0) {
         Swal.fire('Error', 'Please enter valid budget amounts', 'error');
         return;
     }
 
+    budgetLimits.daily = dailyBudget;
     budgetLimits.weekly = weeklyBudget;
     budgetLimits.monthly = monthlyBudget;
     localStorage.setItem('budgetLimits', JSON.stringify(budgetLimits));
     localStorage.setItem('budgetAlertThreshold', alertThreshold);
 
+    updateUI();
     Swal.fire('Success!', 'Budget settings saved successfully', 'success');
 }
 
@@ -547,9 +552,9 @@ function loadSettings() {
     const enableNotifications = localStorage.getItem('enableNotifications') !== 'false';
 
     document.getElementById('profileName').value = profileName;
-    document.getElementById('dailyBudget').value = budgetLimits.daily || 60;
-    document.getElementById('weeklyBudget').value = budgetLimits.weekly || 400;
-    document.getElementById('monthlyBudget').value = budgetLimits.monthly || 1600;
+    document.getElementById('dailyBudget').value = budgetLimits.daily;
+    document.getElementById('weeklyBudget').value = budgetLimits.weekly;
+    document.getElementById('monthlyBudget').value = budgetLimits.monthly;
     document.getElementById('currencySelect').value = currency;
     document.getElementById('reportingPeriod').value = reportingPeriod;
     document.getElementById('chartType').value = chartType;
@@ -687,9 +692,6 @@ function exportReportToPDF() {
 document.getElementById('saveBtn')?.addEventListener('click', saveTransaction);
 document.getElementById('cancelBtn')?.addEventListener('click', clearForm);
 document.getElementById('searchInput')?.addEventListener('input', renderTable);
-document.getElementById('exportCsvBtn')?.addEventListener('click', exportToCSV);
-document.getElementById('exportPdfBtn')?.addEventListener('click', exportToPDF);
-document.getElementById('logoutBtn')?.addEventListener('click', logout);
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -698,4 +700,22 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUI();
     renderTable();
     showPage('dashboard');
+
+    // Mobile menu toggle
+    const toggleBtn = document.getElementById('menu-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('open');
+            toggleBtn.textContent = sidebar.classList.contains('open') ? '×' : '☰';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                sidebar.classList.remove('open');
+                toggleBtn.textContent = '☰';
+            }
+        });
+    }
 });
