@@ -1,3 +1,4 @@
+// assets/js/main.js
 
 // Particle Animation for Canvas
 document.addEventListener('DOMContentLoaded', () => {

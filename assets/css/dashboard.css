@@ -286,7 +286,6 @@ td {
 }
 
 .profile img{
-    align-items: center;
     width: 100px;
     height: 100px;
     border-radius: 50px;
@@ -298,4 +297,102 @@ td {
 
 .btn.btn-outline{
     margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        padding: 1rem 1.5rem;
+    }
+
+    .page-content {
+        margin-left: 0;
+        padding: 1.5rem;
+    }
+
+    .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .nav-links li {
+        padding: 8px 12px;
+        margin: 0;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .header-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .period-selector {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .charts-container {
+        gap: 1.5rem;
+    }
+
+    .chart-card {
+        padding: 1.5rem;
+    }
+
+    .card {
+        padding: 1.5rem;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    table {
+        font-size: 0.9rem;
+        overflow-x: auto;
+        display: block;
+    }
+
+    th, td {
+        padding: 10px;
+    }
+
+    .search-container {
+        max-width: 100%;
+    }
+
+    .profile {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    .profile img {
+        width: 80px;
+        height: 80px;
+    }
+
+    .btn {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .btn.btn-outline {
+        margin-top: 0.5rem;
+    }
 }
