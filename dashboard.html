@@ -16,6 +16,10 @@
 
 <body>
 
+    <header class="mobile-header">
+        <button id="menu-toggle" class="hamburger">☰</button>
+        <h2>SpendWise</h2>
+    </header>
 
     <nav class="sidebar">
         <div class="profile">
@@ -179,6 +183,10 @@
         <!-- Budget Settings -->
         <div class="card" style="margin-top: 20px;">
             <h3>💰 Budget Limits</h3>
+            <div class="form-row">
+                <label for="dailyBudget">Daily Budget:</label>
+                <input type="number" id="dailyBudget" placeholder="Enter daily budget" min="0">
+            </div>
             <div class="form-row">
                 <label for="weeklyBudget">Weekly Budget:</label>
                 <input type="number" id="weeklyBudget" placeholder="Enter weekly budget" min="0">
