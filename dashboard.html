@@ -164,7 +164,7 @@
             <h3>👤 Profile Settings</h3>
             <div style="margin-bottom: 20px; text-align: center;">
                 <img id="settingsProfilePicture" src="https://static.vecteezy.com/system/resources/previews/046/409/821/non_2x/avatar-profile-icon-in-flat-style-male-user-profile-illustration-on-isolated-background-man-profile-sign-business-concept-vector.jpg"
-                    alt="Profile" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #e5e7eb; cursor: pointer; transition: opacity 0.3s;" 
+                    alt="Profile" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #e5e7eb; cursor: pointer; transition: opacity 0.3s;" 
                     onclick="document.getElementById('profilePictureInput').click()" title="Click to change profile picture">
                 <p style="margin-top: 10px; font-size: 13px; color: #666;">Click image to change picture</p>
             </div>
@@ -180,7 +180,7 @@
             <input type="file" id="profilePictureInput" accept="image/*" style="display: none;">
         </div>
 
-        <!-- Budget Settings -->
+        <!-- Budget Limits -->
         <div class="card" style="margin-top: 20px;">
             <h3>💰 Budget Limits</h3>
             <div class="form-row">
@@ -200,107 +200,6 @@
                 <input type="number" id="budgetAlert" placeholder="Alert when budget exceeds %" min="0" max="100" value="80">
             </div>
             <button class="btn btn-primary" onclick="saveBudgetSettings()">Save Budget Settings</button>
-        </div>
-
-        <!-- Categories Settings -->
-        <div class="card" style="margin-top: 20px;">
-            <h3>🏷️ Spending Categories</h3>
-            <div style="margin-bottom: 15px;">
-                <label style="font-weight: 500; display: block; margin-bottom: 10px;">Current Categories:</label>
-                <div id="categoriesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 15px;">
-                </div>
-            </div>
-            <div class="form-row" style="display: flex; gap: 10px; align-items: flex-end;">
-                <div style="flex: 1;">
-                    <label for="newCategory">Add New Category:</label>
-                    <input type="text" id="newCategory" placeholder="Enter category name">
-                </div>
-                <button class="btn btn-primary" onclick="addCategory()">Add</button>
-            </div>
-        </div>
-
-        <!-- Currency Settings -->
-        <div class="card" style="margin-top: 20px;">
-            <h3>💵 Currency & Display</h3>
-            <div class="form-row">
-                <label for="currencySelect">Currency:</label>
-                <select id="currencySelect">
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="GBP">GBP (£)</option>
-                    <option value="JPY">JPY (¥)</option>
-                    <option value="INR">INR (₹)</option>
-                </select>
-            </div>
-            <div class="form-row">
-                <label for="reportingPeriod">Default Reporting Period:</label>
-                <select id="reportingPeriod">
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="yearly">Yearly</option>
-                </select>
-            </div>
-            <button class="btn btn-primary" onclick="saveDisplaySettings()">Save Display Settings</button>
-        </div>
-
-        <!-- Visualization Settings -->
-        <div class="card" style="margin-top: 20px;">
-            <h3>📊 Visualization Preferences</h3>
-            <div class="form-row">
-                <label for="chartType">Preferred Chart Type:</label>
-                <select id="chartType">
-                    <option value="donut">Donut Chart</option>
-                    <option value="pie">Pie Chart</option>
-                    <option value="bar">Bar Chart</option>
-                </select>
-            </div>
-            <div class="form-row">
-                <label for="enableNotifications">
-                    <input type="checkbox" id="enableNotifications" checked> Enable Budget Notifications
-                </label>
-            </div>
-            <button class="btn btn-primary" onclick="saveVisualizationSettings()">Save Visualization Settings</button>
-        </div>
-
-        <!-- Recurring Expenses -->
-        <div class="card" style="margin-top: 20px;">
-            <h3>🔄 Recurring Expenses</h3>
-            <div style="margin-bottom: 15px;">
-                <p style="color: #666; font-size: 14px;">Mark your subscriptions and recurring bills here so they're automatically tracked.</p>
-                <div id="recurringList" style="margin-top: 10px;">
-                </div>
-            </div>
-            <div class="form-row">
-                <label for="recurringName">Expense Name:</label>
-                <input type="text" id="recurringName" placeholder="e.g., Netflix Subscription">
-            </div>
-            <div class="form-row">
-                <label for="recurringAmount">Amount:</label>
-                <input type="number" id="recurringAmount" placeholder="Amount" min="0">
-            </div>
-            <div class="form-row">
-                <label for="recurringFrequency">Frequency:</label>
-                <select id="recurringFrequency">
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="yearly">Yearly</option>
-                </select>
-            </div>
-            <button class="btn btn-primary" onclick="addRecurringExpense()">Add Recurring Expense</button>
-        </div>
-
-        <!-- Export Options -->
-        <div class="card" style="margin-top: 20px;">
-            <h3>📥 Export & Backup</h3>
-            <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Export your data for backup or further analysis.</p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn btn-outline" onclick="exportSettingsJSON()">📄 Export as JSON</button>
-                <button class="btn btn-outline" onclick="importSettingsJSON()">📤 Import from JSON</button>
-                <button class="btn btn-outline" onclick="clearAllData()">🗑️ Clear All Data</button>
-            </div>
-            <input type="file" id="importFile" accept=".json" style="display: none;">
         </div>
 
         <!-- Account -->
